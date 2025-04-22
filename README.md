@@ -1,11 +1,4 @@
 # PI_MusicaInCrescendo
-**Repository Description**
-
-Aplicación móvil para la gestión de bandas y orquestas musicales: permite a directores crear eventos, a músicos confirmar asistencia y acceder a partituras personalizadas según su instrumento.
-
----
-
-# Gestión de Bandas y Orquestas
 
 Aplicación Android desarrollada en Kotlin usando Jetpack Compose, Firebase Realtime Database y arquitectura MVVM para facilitar la organización de eventos musicales y la distribución de partituras.
 
