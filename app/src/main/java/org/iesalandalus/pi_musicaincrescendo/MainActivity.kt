@@ -8,9 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import org.iesalandalus.pi_musicaincrescendo.ui.LoginScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.RegisterScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.PI_MusicaInCrescendoTheme
