@@ -1,10 +1,11 @@
 package org.iesalandalus.pi_musicaincrescendo.ui
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
@@ -13,12 +14,52 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
+import androidx.compose.ui.text.input.PasswordVisualTransformation as UIPasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation as UIVisualTransformation
+
+/**
+ * Selector de sexo extraído para reducir la complejidad cognitiva.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GenderSelector(
+    genderOptions: List<String>,
+    selectedGender: String,
+    onSelectionChanged: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = selectedGender,
+            onValueChange = { },
+            readOnly = true,
+            label = { Text("Sexo") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            modifier = Modifier.fillMaxWidth()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            genderOptions.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onSelectionChanged(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
 
 /**
  * Pantalla de registro.
@@ -28,7 +69,8 @@ import org.iesalandalus.pi_musicaincrescendo.R
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit
 ) {
-    val activity = LocalContext.current as Activity
+    // Obtenemos la Activity usando el CompositionLocal dedicado
+    val activity = LocalActivity.current
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -37,18 +79,19 @@ fun RegisterScreen(
     var pwdVisible1 by remember { mutableStateOf(false) }
     var pwdVisible2 by remember { mutableStateOf(false) }
 
+    // Lista de opciones para el selector de sexo
     val genderOptions = listOf("Hombre", "Mujer", "Prefiero no decirlo")
-    var expanded by remember { mutableStateOf(false) }
     var selectedGender by remember { mutableStateOf(genderOptions[0]) }
 
-    BackHandler { activity.finish() }
+    // Manejo del botón atrás físico para cerrar la Activity
+    BackHandler { activity?.finish() }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Registro") },
                 actions = {
-                    IconButton(onClick = { activity.finish() }) {
+                    IconButton(onClick = { activity?.finish() }) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Cerrar app"
@@ -74,6 +117,7 @@ fun RegisterScreen(
                     .padding(bottom = 16.dp)
             )
 
+            // Campo correo con sugerencias desactivadas
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -84,19 +128,21 @@ fun RegisterScreen(
                         contentDescription = "Icono correo"
                     )
                 },
+                keyboardOptions = KeyboardOptions(autoCorrect = false),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Campo contraseña con ocultación por defecto y sugerencias desactivadas
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
-                visualTransformation = if (pwdVisible1) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (pwdVisible1) UIVisualTransformation.None else UIPasswordVisualTransformation(),
                 trailingIcon = {
                     Icon(
                         painter = painterResource(
-                            id = if (pwdVisible1) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+                            id = if (pwdVisible1) R.drawable.ic_visibility_off else R.drawable.ic_visibility
                         ),
                         contentDescription = if (pwdVisible1) "Ocultar contraseña" else "Mostrar contraseña",
                         modifier = Modifier.pointerInput(Unit) {
@@ -108,15 +154,17 @@ fun RegisterScreen(
                         }
                     )
                 },
+                keyboardOptions = KeyboardOptions(autoCorrect = false),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Campo confirmar contraseña con sugerencias desactivadas
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
                 label = { Text("Confirmar contraseña") },
-                visualTransformation = if (pwdVisible2) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (pwdVisible2) UIVisualTransformation.None else UIPasswordVisualTransformation(),
                 trailingIcon = {
                     Icon(
                         painter = painterResource(
@@ -132,38 +180,17 @@ fun RegisterScreen(
                         }
                     )
                 },
+                keyboardOptions = KeyboardOptions(autoCorrect = false),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = selectedGender,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = { Text("Sexo") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    genderOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                selectedGender = option
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            // Selector de sexo extraído
+            GenderSelector(
+                genderOptions = genderOptions,
+                selectedGender = selectedGender,
+                onSelectionChanged = { selectedGender = it }
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {

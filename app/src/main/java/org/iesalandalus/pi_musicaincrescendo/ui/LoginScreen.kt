@@ -1,10 +1,11 @@
 package org.iesalandalus.pi_musicaincrescendo.ui
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Email
@@ -13,12 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
+import androidx.compose.ui.text.input.PasswordVisualTransformation as UIPasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation as UIVisualTransformation
 
 /**
  * Pantalla de inicio de sesión.
@@ -28,21 +28,23 @@ import org.iesalandalus.pi_musicaincrescendo.R
 fun LoginScreen(
     onNavigateToRegister: () -> Unit
 ) {
-    val activity = LocalContext.current as Activity
+    // Obtenemos la Activity usando el CompositionLocal dedicado
+    val activity = LocalActivity.current
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isDirector by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
 
-    BackHandler { activity.finish() }
+    // Manejo del botón atrás físico para cerrar la Activity
+    BackHandler { activity?.finish() }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Inicio de Sesión") },
                 actions = {
-                    IconButton(onClick = { activity.finish() }) {
+                    IconButton(onClick = { activity?.finish() }) {
                         Icon(
                             imageVector = Icons.Filled.Close,
                             contentDescription = "Cerrar app"
@@ -68,6 +70,7 @@ fun LoginScreen(
                     .padding(bottom = 16.dp)
             )
 
+            // Campo correo con sugerencias desactivadas
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -78,19 +81,21 @@ fun LoginScreen(
                         contentDescription = "Icono correo"
                     )
                 },
+                keyboardOptions = KeyboardOptions(autoCorrect = false),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Campo contraseña con ocultación por defecto y sugerencias desactivadas
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) UIVisualTransformation.None else UIPasswordVisualTransformation(),
                 trailingIcon = {
                     Icon(
                         painter = painterResource(
-                            id = if (passwordVisible) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+                            id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
                         ),
                         contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
                         modifier = Modifier.pointerInput(Unit) {
@@ -104,6 +109,7 @@ fun LoginScreen(
                         }
                     )
                 },
+                keyboardOptions = KeyboardOptions(autoCorrect = false),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
