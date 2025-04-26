@@ -3,23 +3,20 @@ package org.iesalandalus.pi_musicaincrescendo.ui
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.common.components.*
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
 
 /**
  * Pantalla de inicio de sesión.
@@ -27,15 +24,14 @@ import org.iesalandalus.pi_musicaincrescendo.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit
 ) {
-    // Obtenemos la Activity usando el CompositionLocal dedicado
     val activity = LocalActivity.current
 
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isDirector by remember { mutableStateOf(false) }
-    var passwordVisible by remember { mutableStateOf(false) }
+    val email = viewModel.email.collectAsState().value
+    val password = viewModel.password.collectAsState().value
+    val isDirector = viewModel.isDirector.collectAsState().value
 
     // Manejo del botón atrás físico para cerrar la Activity
     BackHandler { activity?.finish() }
@@ -71,70 +67,27 @@ fun LoginScreen(
                     .padding(bottom = 16.dp)
             )
 
-            // Campo correo con sugerencias desactivadas
-            OutlinedTextField(
+            EmailField(
                 value = email,
-                onValueChange = { email = it },
-                label = { Text("Correo electrónico") },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Email,
-                        contentDescription = "Icono correo"
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    autoCorrectEnabled = false
-                ),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = viewModel::onEmailChange
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo contraseña con ocultación por defecto y sugerencias desactivadas
-            OutlinedTextField(
+            PasswordField(
                 value = password,
-                onValueChange = { password = it },
-                label = { Text("Contraseña") },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(
-                            id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
-                        ),
-                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-                        modifier = Modifier.pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
-                                    passwordVisible = true
-                                    tryAwaitRelease()
-                                    passwordVisible = false
-                                }
-                            )
-                        }
-                    )
-                },
-                keyboardOptions = KeyboardOptions(
-                    autoCorrectEnabled = false,
-                    keyboardType = KeyboardType.Password
-                ),
-                modifier = Modifier.fillMaxWidth()
+                onValueChange = viewModel::onPasswordChange,
+                label = "Contraseña"
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isDirector, onCheckedChange = { isDirector = it })
+                Checkbox(checked = isDirector, onCheckedChange = viewModel::onDirectorChecked)
                 Spacer(Modifier.width(8.dp))
                 Text(text = "Soy director")
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { /* Navegación futura */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text("Entrar")
-            }
+            PrimaryButton(text = "Entrar", onClick = viewModel::onLogin)
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = onNavigateToRegister) {
