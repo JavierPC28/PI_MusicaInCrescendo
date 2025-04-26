@@ -15,10 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
-import androidx.compose.ui.text.input.PasswordVisualTransformation as UIPasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation as UIVisualTransformation
 
 /**
  * Pantalla de inicio de sesión.
@@ -81,7 +82,9 @@ fun LoginScreen(
                         contentDescription = "Icono correo"
                     )
                 },
-                keyboardOptions = KeyboardOptions(autoCorrect = false),
+                keyboardOptions = KeyboardOptions(
+                    autoCorrectEnabled = false
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -91,7 +94,7 @@ fun LoginScreen(
                 value = password,
                 onValueChange = { password = it },
                 label = { Text("Contraseña") },
-                visualTransformation = if (passwordVisible) UIVisualTransformation.None else UIPasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     Icon(
                         painter = painterResource(
@@ -109,7 +112,10 @@ fun LoginScreen(
                         }
                     )
                 },
-                keyboardOptions = KeyboardOptions(autoCorrect = false),
+                keyboardOptions = KeyboardOptions(
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Password
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(modifier = Modifier.height(8.dp))

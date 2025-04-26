@@ -15,20 +15,86 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
-import androidx.compose.ui.text.input.PasswordVisualTransformation as UIPasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation as UIVisualTransformation
 
 /**
- * Selector de sexo extraído para reducir la complejidad cognitiva.
+ * Campo de texto para correo electrónico con sugerencias desactivadas.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GenderSelector(
-    genderOptions: List<String>,
-    selectedGender: String,
-    onSelectionChanged: (String) -> Unit
+fun EmailField(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text("Correo electrónico") },
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Email,
+                contentDescription = "Icono correo"
+            )
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            autoCorrectEnabled = false
+        ),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+/**
+ * Campo de texto para contraseña con visibilidad controlada.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PasswordField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    var visible by remember { mutableStateOf(false) }
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            Icon(
+                painter = painterResource(
+                    id = if (visible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
+                ),
+                contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña",
+                modifier = Modifier.pointerInput(Unit) {
+                    detectTapGestures(onPress = {
+                        visible = true
+                        tryAwaitRelease()
+                        visible = false
+                    })
+                }
+            )
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            autoCorrectEnabled = false
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
+}
+
+/**
+ * Selector de sexo reutilizable.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GenderSelector(
+    options: List<String>,
+    selected: String,
+    onSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
@@ -37,8 +103,8 @@ private fun GenderSelector(
         modifier = Modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
-            value = selectedGender,
-            onValueChange = { },
+            value = selected,
+            onValueChange = {},
             readOnly = true,
             label = { Text("Sexo") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
@@ -48,11 +114,11 @@ private fun GenderSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            genderOptions.forEach { option ->
+            options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = {
-                        onSelectionChanged(option)
+                        onSelected(option)
                         expanded = false
                     }
                 )
@@ -69,21 +135,17 @@ private fun GenderSelector(
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit
 ) {
-    // Obtenemos la Activity usando el CompositionLocal dedicado
+    // Activity actual
     val activity = LocalActivity.current
 
+    // Estados de los campos
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isDirector by remember { mutableStateOf(false) }
-    var pwdVisible1 by remember { mutableStateOf(false) }
-    var pwdVisible2 by remember { mutableStateOf(false) }
-
-    // Lista de opciones para el selector de sexo
+    var gender by remember { mutableStateOf("Hombre") }
     val genderOptions = listOf("Hombre", "Mujer", "Prefiero no decirlo")
-    var selectedGender by remember { mutableStateOf(genderOptions[0]) }
 
-    // Manejo del botón atrás físico para cerrar la Activity
     BackHandler { activity?.finish() }
 
     Scaffold(
@@ -100,10 +162,10 @@ fun RegisterScreen(
                 }
             )
         }
-    ) { innerPadding ->
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(paddingValues)
                 .fillMaxSize()
                 .padding(16.dp),
             verticalArrangement = Arrangement.Top,
@@ -116,90 +178,20 @@ fun RegisterScreen(
                     .size(100.dp)
                     .padding(bottom = 16.dp)
             )
-
-            // Campo correo con sugerencias desactivadas
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Correo electrónico") },
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.Email,
-                        contentDescription = "Icono correo"
-                    )
-                },
-                keyboardOptions = KeyboardOptions(autoCorrect = false),
-                modifier = Modifier.fillMaxWidth()
-            )
+            EmailField(value = email, onValueChange = { email = it })
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Campo contraseña con ocultación por defecto y sugerencias desactivadas
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Contraseña") },
-                visualTransformation = if (pwdVisible1) UIVisualTransformation.None else UIPasswordVisualTransformation(),
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(
-                            id = if (pwdVisible1) R.drawable.ic_visibility_off else R.drawable.ic_visibility
-                        ),
-                        contentDescription = if (pwdVisible1) "Ocultar contraseña" else "Mostrar contraseña",
-                        modifier = Modifier.pointerInput(Unit) {
-                            detectTapGestures(onPress = {
-                                pwdVisible1 = true
-                                tryAwaitRelease()
-                                pwdVisible1 = false
-                            })
-                        }
-                    )
-                },
-                keyboardOptions = KeyboardOptions(autoCorrect = false),
-                modifier = Modifier.fillMaxWidth()
-            )
+            PasswordField(value = password, onValueChange = { password = it }, label = "Contraseña")
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Campo confirmar contraseña con sugerencias desactivadas
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirmar contraseña") },
-                visualTransformation = if (pwdVisible2) UIVisualTransformation.None else UIPasswordVisualTransformation(),
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(
-                            id = if (pwdVisible2) R.drawable.ic_visibility_off else R.drawable.ic_visibility
-                        ),
-                        contentDescription = if (pwdVisible2) "Ocultar contraseña" else "Mostrar contraseña",
-                        modifier = Modifier.pointerInput(Unit) {
-                            detectTapGestures(onPress = {
-                                pwdVisible2 = true
-                                tryAwaitRelease()
-                                pwdVisible2 = false
-                            })
-                        }
-                    )
-                },
-                keyboardOptions = KeyboardOptions(autoCorrect = false),
-                modifier = Modifier.fillMaxWidth()
-            )
+            PasswordField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = "Confirmar contraseña")
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Selector de sexo extraído
-            GenderSelector(
-                genderOptions = genderOptions,
-                selectedGender = selectedGender,
-                onSelectionChanged = { selectedGender = it }
-            )
+            GenderSelector(options = genderOptions, selected = gender, onSelected = { gender = it })
             Spacer(modifier = Modifier.height(8.dp))
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isDirector, onCheckedChange = { isDirector = it })
-                Spacer(Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "Soy director")
             }
             Spacer(modifier = Modifier.height(16.dp))
-
             Button(
                 onClick = { /* Navegación futura */ },
                 modifier = Modifier
@@ -209,7 +201,6 @@ fun RegisterScreen(
                 Text("Registrar")
             }
             Spacer(modifier = Modifier.height(8.dp))
-
             TextButton(onClick = onNavigateToLogin) {
                 Text(text = "¿Ya tienes cuenta? Inicia sesión")
             }
