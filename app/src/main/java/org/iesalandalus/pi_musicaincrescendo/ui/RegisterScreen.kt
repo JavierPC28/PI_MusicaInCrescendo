@@ -20,6 +20,7 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterView
 
 /**
  * Pantalla de registro.
+ * Ahora valida que confirmPassword coincida con password.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,20 +32,22 @@ fun RegisterScreen(
 
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
+
     val password by viewModel.password.collectAsState()
     val isPasswordValid by viewModel.isPasswordValid.collectAsState()
+
     val confirmPassword by viewModel.confirmPassword.collectAsState()
+    val isConfirmPasswordValid by viewModel.isConfirmPasswordValid.collectAsState()
+
     val gender by viewModel.gender.collectAsState()
     val isDirector by viewModel.isDirector.collectAsState()
 
-    // Opciones sin el placeholder
     val genderOptions = listOf(
         "Hombre",
         "Mujer",
         "Prefiero no decirlo"
     )
 
-    // Elige la imagen según género y director
     val imageRes = when {
         gender == "Mujer" && isDirector -> R.drawable.perfil_directora
         gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
@@ -78,7 +81,6 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Imagen que cambia dinámicamente
             Image(
                 painter = painterResource(id = imageRes),
                 contentDescription = "Imagen de perfil",
@@ -100,14 +102,18 @@ fun RegisterScreen(
                 onValueChange = viewModel::onPasswordChange,
                 label = "Contraseña",
                 isError = !isPasswordValid,
-                errorMessage = if (!isPasswordValid) "Debe empezar por letra, tener ≥8 caracteres, un número y un carácter especial" else null
+                errorMessage = if (!isPasswordValid)
+                    "Debe empezar por letra, tener ≥8 caracteres, un número y un carácter especial"
+                else null
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             PasswordField(
                 value = confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
-                label = "Confirmar contraseña"
+                label = "Confirmar contraseña",
+                isError = !isConfirmPasswordValid,
+                errorMessage = if (!isConfirmPasswordValid) "Las contraseñas no coinciden" else null
             )
             Spacer(modifier = Modifier.height(8.dp))
 

@@ -8,13 +8,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.LoginScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.RegisterScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.PI_MusicaInCrescendoTheme
 
 /**
  * Actividad principal con navegación.
+ * Ahora al navegar desde login a register limpia campos de login.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +39,21 @@ class MainActivity : ComponentActivity() {
 fun AppNavHost() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "login") {
-        composable("login") { LoginScreen(onNavigateToRegister = { navController.navigate("register") }) }
-        composable("register") { RegisterScreen(onNavigateToLogin = { navController.popBackStack() }) }
+        composable("login") {
+            val loginViewModel: LoginViewModel = viewModel()
+            LoginScreen(
+                viewModel = loginViewModel,
+                onNavigateToRegister = {
+                    // Limpiamos antes de salir de login
+                    loginViewModel.resetFields()
+                    navController.navigate("register")
+                }
+            )
+        }
+        composable("register") {
+            RegisterScreen(
+                onNavigateToLogin = { navController.popBackStack() }
+            )
+        }
     }
 }

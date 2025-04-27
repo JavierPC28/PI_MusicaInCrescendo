@@ -20,6 +20,7 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewMod
 
 /**
  * Pantalla de inicio de sesión.
+ * Ahora muestra errores de validación y limpia campos al navegar fuera.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,9 +31,11 @@ fun LoginScreen(
     val activity = LocalActivity.current
 
     val email = viewModel.email.collectAsState().value
-    val password = viewModel.password.collectAsState().value
+    val isEmailValid = viewModel.isEmailValid.collectAsState().value
 
-    // Manejo del botón atrás físico para cerrar la Activity
+    val password = viewModel.password.collectAsState().value
+    val isPasswordValid = viewModel.isPasswordValid.collectAsState().value
+
     BackHandler { activity?.finish() }
 
     Scaffold(
@@ -58,7 +61,6 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Imagen siempre perfil neutro en login
             Image(
                 painter = painterResource(id = R.drawable.perfil_neutro),
                 contentDescription = "Perfil neutro",
@@ -69,21 +71,37 @@ fun LoginScreen(
 
             EmailField(
                 value = email,
-                onValueChange = viewModel::onEmailChange
+                onValueChange = viewModel::onEmailChange,
+                isError = !isEmailValid,
+                errorMessage = if (!isEmailValid) "Formato de correo inválido" else null
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             PasswordField(
                 value = password,
                 onValueChange = viewModel::onPasswordChange,
-                label = "Contraseña"
+                label = "Contraseña",
+                isError = !isPasswordValid,
+                errorMessage = if (!isPasswordValid)
+                    "Debe empezar por letra, tener ≥8 caracteres, un número y un carácter especial"
+                else null
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            PrimaryButton(text = "Entrar", onClick = viewModel::onLogin)
+            PrimaryButton(
+                text = "Entrar",
+                onClick = viewModel::onLogin,
+                // Podrías deshabilitar si hay error:
+                // enabled = isEmailValid && isPasswordValid
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
-            TextButton(onClick = onNavigateToRegister) {
+            TextButton(
+                onClick = {
+                    viewModel.resetFields()
+                    onNavigateToRegister()
+                }
+            ) {
                 Text(text = "¿No tienes cuenta? Regístrate")
             }
         }
