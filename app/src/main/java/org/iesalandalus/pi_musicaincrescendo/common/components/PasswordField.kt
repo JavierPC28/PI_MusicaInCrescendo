@@ -21,9 +21,9 @@ fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
+    modifier: Modifier = Modifier,
     isError: Boolean = false,
-    errorMessage: String? = null,
-    modifier: Modifier = Modifier
+    errorMessage: String? = null
 ) {
     var visible by remember { mutableStateOf(false) }
     Column(modifier = modifier.fillMaxWidth()) {

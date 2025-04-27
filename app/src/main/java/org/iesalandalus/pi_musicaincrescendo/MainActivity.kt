@@ -17,7 +17,7 @@ import org.iesalandalus.pi_musicaincrescendo.ui.theme.PI_MusicaInCrescendoTheme
 
 /**
  * Actividad principal con navegación.
- * Ahora al navegar desde login a register limpia campos de login.
+ * Al navegar desde login a register limpia campos de login.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

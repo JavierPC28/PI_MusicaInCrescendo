@@ -20,7 +20,7 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterView
 
 /**
  * Pantalla de registro.
- * Ahora valida que confirmPassword coincida con password.
+ * Valida que confirmPassword coincida con password.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

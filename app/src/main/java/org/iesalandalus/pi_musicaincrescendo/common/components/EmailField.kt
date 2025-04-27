@@ -1,7 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.common.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -9,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
 
 /**
  * Campo de texto para correo electrónico con sugerencias desactivadas
@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 fun EmailField(
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     isError: Boolean = false,
-    errorMessage: String? = null,
-    modifier: Modifier = Modifier
+    errorMessage: String? = null
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(

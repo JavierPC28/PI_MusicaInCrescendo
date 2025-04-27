@@ -23,9 +23,6 @@ class LoginViewModel : ViewModel() {
     private val _isPasswordValid = MutableStateFlow(true)
     val isPasswordValid: StateFlow<Boolean> get() = _isPasswordValid
 
-    private val _isDirector = MutableStateFlow(false)
-    val isDirector: StateFlow<Boolean> get() = _isDirector
-
     /**
      * Al cambiar email, validamos formato.
      */
@@ -42,10 +39,6 @@ class LoginViewModel : ViewModel() {
         _isPasswordValid.value = Validator.isPasswordValid(newPassword)
     }
 
-    fun onDirectorChecked(checked: Boolean) {
-        _isDirector.value = checked
-    }
-
     /**
      * Resetea todos los campos de login.
      * Se llamará antes de navegar a registro para que no persistan valores.
@@ -55,7 +48,6 @@ class LoginViewModel : ViewModel() {
         _isEmailValid.value = true
         _password.value = ""
         _isPasswordValid.value = true
-        _isDirector.value = false
     }
 
     fun onLogin() {

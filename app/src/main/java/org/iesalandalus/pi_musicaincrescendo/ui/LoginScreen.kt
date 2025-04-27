@@ -20,7 +20,7 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewMod
 
 /**
  * Pantalla de inicio de sesión.
- * Ahora muestra errores de validación y limpia campos al navegar fuera.
+ * Muestra errores de validación y limpia campos al navegar fuera.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,8 +91,6 @@ fun LoginScreen(
             PrimaryButton(
                 text = "Entrar",
                 onClick = viewModel::onLogin,
-                // Podrías deshabilitar si hay error:
-                // enabled = isEmailValid && isPasswordValid
             )
             Spacer(modifier = Modifier.height(8.dp))
 
