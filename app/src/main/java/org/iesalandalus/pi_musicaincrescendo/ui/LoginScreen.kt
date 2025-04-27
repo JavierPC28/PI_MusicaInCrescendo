@@ -31,7 +31,6 @@ fun LoginScreen(
 
     val email = viewModel.email.collectAsState().value
     val password = viewModel.password.collectAsState().value
-    val isDirector = viewModel.isDirector.collectAsState().value
 
     // Manejo del botón atrás físico para cerrar la Activity
     BackHandler { activity?.finish() }
@@ -59,6 +58,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Imagen siempre perfil neutro en login
             Image(
                 painter = painterResource(id = R.drawable.perfil_neutro),
                 contentDescription = "Perfil neutro",
@@ -78,13 +78,6 @@ fun LoginScreen(
                 onValueChange = viewModel::onPasswordChange,
                 label = "Contraseña"
             )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isDirector, onCheckedChange = viewModel::onDirectorChecked)
-                Spacer(Modifier.width(8.dp))
-                Text(text = "Soy director")
-            }
             Spacer(modifier = Modifier.height(16.dp))
 
             PrimaryButton(text = "Entrar", onClick = viewModel::onLogin)

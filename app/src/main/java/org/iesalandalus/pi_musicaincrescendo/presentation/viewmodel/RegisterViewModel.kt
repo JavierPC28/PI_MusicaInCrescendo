@@ -18,7 +18,8 @@ class RegisterViewModel : ViewModel() {
     private val _confirmPassword = MutableStateFlow("")
     val confirmPassword: StateFlow<String> get() = _confirmPassword
 
-    private val _gender = MutableStateFlow("Hombre")
+    // Por defecto “Seleccione su género”
+    private val _gender = MutableStateFlow("Seleccione su género")
     val gender: StateFlow<String> get() = _gender
 
     private val _isDirector = MutableStateFlow(false)

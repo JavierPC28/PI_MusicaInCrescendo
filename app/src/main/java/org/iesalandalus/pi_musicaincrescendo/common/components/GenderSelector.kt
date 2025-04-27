@@ -17,6 +17,7 @@ fun GenderSelector(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
@@ -24,15 +25,19 @@ fun GenderSelector(
     ) {
         OutlinedTextField(
             value = selected,
-            onValueChange = {},
+            onValueChange = { /* no-op */ },
             readOnly = true,
             label = { Text("Sexo") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                // Necesario para anclar el menú al TextField
+                .menuAnchor()
+                .fillMaxWidth()
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

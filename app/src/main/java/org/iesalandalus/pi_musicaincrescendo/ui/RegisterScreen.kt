@@ -15,10 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.iesalandalus.pi_musicaincrescendo.R
-import org.iesalandalus.pi_musicaincrescendo.common.components.EmailField
-import org.iesalandalus.pi_musicaincrescendo.common.components.PasswordField
-import org.iesalandalus.pi_musicaincrescendo.common.components.GenderSelector
-import org.iesalandalus.pi_musicaincrescendo.common.components.PrimaryButton
+import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
 
 /**
@@ -37,7 +34,25 @@ fun RegisterScreen(
     val confirmPassword = viewModel.confirmPassword.collectAsState().value
     val gender = viewModel.gender.collectAsState().value
     val isDirector = viewModel.isDirector.collectAsState().value
-    val genderOptions = listOf("Hombre", "Mujer", "Prefiero no decirlo")
+
+    // Opciones del spinner con valor por defecto primero
+    val genderOptions = listOf(
+        "Seleccione su género",
+        "Hombre",
+        "Mujer",
+        "Prefiero no decirlo"
+    )
+
+    // Elige la imagen según género y director
+    val imageRes = when {
+        gender == "Mujer" && isDirector -> R.drawable.perfil_directora
+        gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
+        gender == "Hombre" && isDirector -> R.drawable.perfil_director
+        gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
+        gender == "Prefiero no decirlo" -> R.drawable.perfil_neutro
+        gender == "Seleccione su género" -> R.drawable.perfil_neutro
+        else -> R.drawable.perfil_neutro
+    }
 
     BackHandler { activity?.finish() }
 
@@ -64,15 +79,19 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Imagen que cambia dinámicamente
             Image(
-                painter = painterResource(id = R.drawable.perfil_neutro),
-                contentDescription = "Perfil neutro",
+                painter = painterResource(id = imageRes),
+                contentDescription = "Imagen de perfil",
                 modifier = Modifier
                     .size(100.dp)
                     .padding(bottom = 16.dp)
             )
 
-            EmailField(value = email, onValueChange = viewModel::onEmailChange)
+            EmailField(
+                value = email,
+                onValueChange = viewModel::onEmailChange
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             PasswordField(
@@ -97,7 +116,10 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isDirector, onCheckedChange = viewModel::onDirectorChecked)
+                Checkbox(
+                    checked = isDirector,
+                    onCheckedChange = viewModel::onDirectorChecked
+                )
                 Spacer(Modifier.width(8.dp))
                 Text(text = "Soy director")
             }
