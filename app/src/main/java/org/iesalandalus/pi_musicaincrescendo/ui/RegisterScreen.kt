@@ -3,12 +3,12 @@ package org.iesalandalus.pi_musicaincrescendo.ui
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -29,15 +29,16 @@ fun RegisterScreen(
 ) {
     val activity = LocalActivity.current
 
-    val email = viewModel.email.collectAsState().value
-    val password = viewModel.password.collectAsState().value
-    val confirmPassword = viewModel.confirmPassword.collectAsState().value
-    val gender = viewModel.gender.collectAsState().value
-    val isDirector = viewModel.isDirector.collectAsState().value
+    val email by viewModel.email.collectAsState()
+    val isEmailValid by viewModel.isEmailValid.collectAsState()
+    val password by viewModel.password.collectAsState()
+    val isPasswordValid by viewModel.isPasswordValid.collectAsState()
+    val confirmPassword by viewModel.confirmPassword.collectAsState()
+    val gender by viewModel.gender.collectAsState()
+    val isDirector by viewModel.isDirector.collectAsState()
 
-    // Opciones del spinner con valor por defecto primero
+    // Opciones sin el placeholder
     val genderOptions = listOf(
-        "Seleccione su género",
         "Hombre",
         "Mujer",
         "Prefiero no decirlo"
@@ -49,8 +50,6 @@ fun RegisterScreen(
         gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
         gender == "Hombre" && isDirector -> R.drawable.perfil_director
         gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
-        gender == "Prefiero no decirlo" -> R.drawable.perfil_neutro
-        gender == "Seleccione su género" -> R.drawable.perfil_neutro
         else -> R.drawable.perfil_neutro
     }
 
@@ -90,14 +89,18 @@ fun RegisterScreen(
 
             EmailField(
                 value = email,
-                onValueChange = viewModel::onEmailChange
+                onValueChange = viewModel::onEmailChange,
+                isError = !isEmailValid,
+                errorMessage = if (!isEmailValid) "Formato de correo inválido" else null
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             PasswordField(
                 value = password,
                 onValueChange = viewModel::onPasswordChange,
-                label = "Contraseña"
+                label = "Contraseña",
+                isError = !isPasswordValid,
+                errorMessage = if (!isPasswordValid) "Debe empezar por letra, tener ≥8 caracteres, un número y un carácter especial" else null
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -115,7 +118,12 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable {
+                    viewModel.onDirectorChecked(!isDirector)
+                }
+            ) {
                 Checkbox(
                     checked = isDirector,
                     onCheckedChange = viewModel::onDirectorChecked
