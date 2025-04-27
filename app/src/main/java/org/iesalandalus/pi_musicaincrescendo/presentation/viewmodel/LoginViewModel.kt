@@ -1,13 +1,13 @@
 package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
-import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Validator
 
 /**
  * ViewModel para la lógica de inicio de sesión.
- * Ahora incluye validación de email y contraseña, y método para resetear campos.
+ * Incluye validación de email y contraseña, y método para resetear campos.
  */
 class LoginViewModel : ViewModel() {
 
@@ -31,17 +31,15 @@ class LoginViewModel : ViewModel() {
      */
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail
-        _isEmailValid.value = Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()
+        _isEmailValid.value = Validator.isEmailValid(newEmail)
     }
 
     /**
-     * Al cambiar contraseña, validamos criterios mínimos:
-     * min 8 caracteres, comienza por letra, un dígito y un carácter especial.
+     * Al cambiar contraseña, validamos criterios mínimos.
      */
     fun onPasswordChange(newPassword: String) {
         _password.value = newPassword
-        val regex = Regex("^[A-Za-z](?=.*[0-9])(?=.*[^A-Za-z0-9]).{7,}\$")
-        _isPasswordValid.value = regex.matches(newPassword)
+        _isPasswordValid.value = Validator.isPasswordValid(newPassword)
     }
 
     fun onDirectorChecked(checked: Boolean) {
