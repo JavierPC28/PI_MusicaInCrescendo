@@ -44,15 +44,15 @@ fun AppNavHost() {
             LoginScreen(
                 viewModel = loginViewModel,
                 onNavigateToRegister = {
-                    // Limpiamos antes de salir de login
-                    loginViewModel.resetFields()
                     navController.navigate("register")
                 }
             )
         }
         composable("register") {
             RegisterScreen(
-                onNavigateToLogin = { navController.popBackStack() }
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                }
             )
         }
     }

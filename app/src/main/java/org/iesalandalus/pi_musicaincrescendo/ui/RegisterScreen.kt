@@ -139,7 +139,7 @@ fun RegisterScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            PrimaryButton(text = "Registrar", onClick = viewModel::onRegister)
+            PrimaryButton(text = "Registrarse", onClick = viewModel::onRegister)
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = onNavigateToLogin) {

@@ -7,8 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -20,7 +19,7 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewMod
 
 /**
  * Pantalla de inicio de sesión.
- * Muestra errores de validación y limpia campos al navegar fuera.
+ * Añadimos un LaunchedEffect para resetear campos al entrar.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,13 +27,18 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit
 ) {
+    // Aquí reseteamos automáticamente al componer por primera vez la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.resetFields()
+    }
+
     val activity = LocalActivity.current
 
-    val email = viewModel.email.collectAsState().value
-    val isEmailValid = viewModel.isEmailValid.collectAsState().value
+    val email by viewModel.email.collectAsState()
+    val isEmailValid by viewModel.isEmailValid.collectAsState()
 
-    val password = viewModel.password.collectAsState().value
-    val isPasswordValid = viewModel.isPasswordValid.collectAsState().value
+    val password by viewModel.password.collectAsState()
+    val isPasswordValid by viewModel.isPasswordValid.collectAsState()
 
     BackHandler { activity?.finish() }
 
@@ -96,7 +100,6 @@ fun LoginScreen(
 
             TextButton(
                 onClick = {
-                    viewModel.resetFields()
                     onNavigateToRegister()
                 }
             ) {
