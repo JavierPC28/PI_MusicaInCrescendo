@@ -17,6 +17,7 @@ firebaseAuthVersion = "23.2.0"
 credentialsVersion = "1.5.0"
 credentialsPlayServicesAuthVersion = "1.5.0"
 googleidVersion = "1.1.1"
+firebaseDatabaseVersion = "21.0.0"
 
 [libraries]
 androidx-activity-compose-v172 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
@@ -43,6 +44,7 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentialsVersion" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuthVersion" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleidVersion" }
+firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabaseVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
