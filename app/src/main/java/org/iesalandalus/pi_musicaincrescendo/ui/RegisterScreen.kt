@@ -1,5 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.ui
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,6 +31,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit
 ) {
     val activity = LocalActivity.current
+    val context = LocalContext.current
 
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
@@ -42,12 +45,19 @@ fun RegisterScreen(
     val gender by viewModel.gender.collectAsState()
     val isDirector by viewModel.isDirector.collectAsState()
 
+    // Opciones para selector de género
     val genderOptions = listOf(
         "Hombre",
         "Mujer",
         "Prefiero no decirlo"
     )
 
+    // Determinamos si el formulario es válido para habilitar el botón
+    val isFormValid = email.isNotBlank() && isEmailValid
+            && password.isNotBlank() && isPasswordValid
+            && confirmPassword.isNotBlank() && isConfirmPasswordValid
+
+    // Selección de imagen según género y rol
     val imageRes = when {
         gender == "Mujer" && isDirector -> R.drawable.perfil_directora
         gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
@@ -139,7 +149,22 @@ fun RegisterScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            PrimaryButton(text = "Registrarse", onClick = viewModel::onRegister)
+            PrimaryButton(
+                text = "Registrarse",
+                onClick = {
+                    // Si el sexo no está seleccionado, mostramos recordatorio
+                    if (gender == "-- Seleccione su género --") {
+                        Toast.makeText(
+                            context,
+                            "Por favor seleccione un sexo antes de continuar",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        viewModel.onRegister()
+                    }
+                },
+                enabled = isFormValid
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(onClick = onNavigateToLogin) {

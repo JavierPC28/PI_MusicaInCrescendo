@@ -40,6 +40,9 @@ fun LoginScreen(
     val password by viewModel.password.collectAsState()
     val isPasswordValid by viewModel.isPasswordValid.collectAsState()
 
+    // Determinamos si el formulario es válido para habilitar el botón
+    val isFormValid = email.isNotBlank() && isEmailValid && password.isNotBlank() && isPasswordValid
+
     BackHandler { activity?.finish() }
 
     Scaffold(
@@ -95,6 +98,7 @@ fun LoginScreen(
             PrimaryButton(
                 text = "Entrar",
                 onClick = viewModel::onLogin,
+                enabled = isFormValid
             )
             Spacer(modifier = Modifier.height(8.dp))
 
