@@ -6,6 +6,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -20,9 +21,58 @@ import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
 
+// Opciones de género reutilizables
+private val genderOptions = listOf(
+    "Hombre",
+    "Mujer",
+    "Prefiero no decirlo"
+)
+
+/**
+ * Composable para mostrar la imagen de perfil según género y rol de director.
+ */
+@Composable
+private fun ProfileImage(gender: String, isDirector: Boolean) {
+    val imageRes = when {
+        gender == "Mujer" && isDirector -> R.drawable.perfil_directora
+        gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
+        gender == "Hombre" && isDirector -> R.drawable.perfil_director
+        gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
+        else -> R.drawable.perfil_neutro
+    }
+    Image(
+        painter = painterResource(id = imageRes),
+        contentDescription = "Imagen de perfil",
+        modifier = Modifier
+            .size(100.dp)
+            .padding(bottom = 16.dp)
+    )
+}
+
+/**
+ * Composable para el checkbox de director.
+ */
+@Composable
+private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onDirectorChecked(!isDirector) }
+    ) {
+        Checkbox(
+            checked = isDirector,
+            onCheckedChange = onDirectorChecked
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text = "Soy director")
+    }
+}
+
 /**
  * Pantalla de registro.
- * Valida que confirmPassword coincida con password.
+ * Refactorizada para reducir la complejidad cognitiva y mantener la lógica original.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,37 +83,28 @@ fun RegisterScreen(
     val activity = LocalActivity.current
     val context = LocalContext.current
 
+    // Estado de los campos
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
-
     val password by viewModel.password.collectAsState()
     val isPasswordValid by viewModel.isPasswordValid.collectAsState()
-
     val confirmPassword by viewModel.confirmPassword.collectAsState()
     val isConfirmPasswordValid by viewModel.isConfirmPasswordValid.collectAsState()
-
     val gender by viewModel.gender.collectAsState()
     val isDirector by viewModel.isDirector.collectAsState()
 
-    // Opciones para selector de género
-    val genderOptions = listOf(
-        "Hombre",
-        "Mujer",
-        "Prefiero no decirlo"
-    )
-
-    // Determinamos si el formulario es válido para habilitar el botón
-    val isFormValid = email.isNotBlank() && isEmailValid
-            && password.isNotBlank() && isPasswordValid
-            && confirmPassword.isNotBlank() && isConfirmPasswordValid
-
-    // Selección de imagen según género y rol
-    val imageRes = when {
-        gender == "Mujer" && isDirector -> R.drawable.perfil_directora
-        gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
-        gender == "Hombre" && isDirector -> R.drawable.perfil_director
-        gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
-        else -> R.drawable.perfil_neutro
+    // Habilita botón solo cuando email, password y confirmación sean válidos y no estén vacíos
+    val isFieldsValid = remember(
+        email,
+        isEmailValid,
+        password,
+        isPasswordValid,
+        confirmPassword,
+        isConfirmPasswordValid
+    ) {
+        email.isNotBlank() && isEmailValid &&
+                password.isNotBlank() && isPasswordValid &&
+                confirmPassword.isNotBlank() && isConfirmPasswordValid
     }
 
     BackHandler { activity?.finish() }
@@ -91,14 +132,9 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = "Imagen de perfil",
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(bottom = 16.dp)
-            )
+            ProfileImage(gender = gender, isDirector = isDirector)
 
+            // Campo de correo electrónico
             EmailField(
                 value = email,
                 onValueChange = viewModel::onEmailChange,
@@ -107,6 +143,7 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Campo de contraseña
             PasswordField(
                 value = password,
                 onValueChange = viewModel::onPasswordChange,
@@ -118,6 +155,7 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Campo de confirmación de contraseña
             PasswordField(
                 value = confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
@@ -127,6 +165,7 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Selector de género
             GenderSelector(
                 options = genderOptions,
                 selected = gender,
@@ -134,39 +173,32 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable {
-                    viewModel.onDirectorChecked(!isDirector)
-                }
-            ) {
-                Checkbox(
-                    checked = isDirector,
-                    onCheckedChange = viewModel::onDirectorChecked
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(text = "Soy director")
-            }
+            // Checkbox de director
+            DirectorCheckbox(
+                isDirector = isDirector,
+                onDirectorChecked = viewModel::onDirectorChecked
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botón de registro
             PrimaryButton(
                 text = "Registrarse",
                 onClick = {
-                    // Si el sexo no está seleccionado, mostramos recordatorio
                     if (gender == "-- Seleccione su género --") {
                         Toast.makeText(
                             context,
-                            "Por favor seleccione un sexo antes de continuar",
+                            "Por favor, seleccione un sexo",
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
                         viewModel.onRegister()
                     }
                 },
-                enabled = isFormValid
+                enabled = isFieldsValid
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Navegar a pantalla de login
             TextButton(onClick = onNavigateToLogin) {
                 Text(text = "¿Ya tienes cuenta? Inicia sesión")
             }
