@@ -41,6 +41,7 @@ class RegisterViewModel(
     val registrationSuccess: StateFlow<Boolean> = _registrationSuccess
 
     private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
 
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail

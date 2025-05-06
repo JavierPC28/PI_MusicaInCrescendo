@@ -41,33 +41,30 @@ fun AppNavHost() {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             val loginViewModel: LoginViewModel = viewModel()
-            val loginSuccess by loginViewModel.loginSuccess.collectAsState()
-
-            // Si ya inició sesión, navegamos a home
-            LaunchedEffect(loginSuccess) {
-                if (loginSuccess) navController.navigate("home") {
-                    popUpTo("login") { inclusive = true }
-                }
-            }
-
             LoginScreen(
                 viewModel = loginViewModel,
-                onNavigateToRegister = { navController.navigate("register") }
+                onNavigateToRegister = {
+                    navController.navigate("register")
+                },
+                onLoginSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
             )
         }
         composable("register") {
             val registerViewModel: RegisterViewModel = viewModel()
-            val regSuccess by registerViewModel.registrationSuccess.collectAsState()
-
-            LaunchedEffect(regSuccess) {
-                if (regSuccess) navController.navigate("home") {
-                    popUpTo("register") { inclusive = true }
-                }
-            }
-
             RegisterScreen(
                 viewModel = registerViewModel,
-                onNavigateToLogin = { navController.popBackStack() }
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                },
+                onRegisterSuccess = {
+                    navController.navigate("home") {
+                        popUpTo("register") { inclusive = true }
+                    }
+                }
             )
         }
         composable("home") {

@@ -6,7 +6,6 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
@@ -21,16 +20,12 @@ import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
 
-// Opciones de género reutilizables
 private val genderOptions = listOf(
     "Hombre",
     "Mujer",
     "Prefiero no decirlo"
 )
 
-/**
- * Composable para mostrar la imagen de perfil según género y rol de director.
- */
 @Composable
 private fun ProfileImage(gender: String, isDirector: Boolean) {
     val imageRes = when {
@@ -49,9 +44,6 @@ private fun ProfileImage(gender: String, isDirector: Boolean) {
     )
 }
 
-/**
- * Composable para el checkbox de director.
- */
 @Composable
 private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -> Unit) {
     Row(
@@ -70,20 +62,16 @@ private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -
     }
 }
 
-/**
- * Pantalla de registro.
- * Refactorizada para reducir la complejidad cognitiva y mantener la lógica original.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = viewModel(),
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onRegisterSuccess: () -> Unit
 ) {
     val activity = LocalActivity.current
     val context = LocalContext.current
 
-    // Estado de los campos
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -92,19 +80,24 @@ fun RegisterScreen(
     val isConfirmPasswordValid by viewModel.isConfirmPasswordValid.collectAsState()
     val gender by viewModel.gender.collectAsState()
     val isDirector by viewModel.isDirector.collectAsState()
+    val registrationSuccess by viewModel.registrationSuccess.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // Habilita botón solo cuando email, password y confirmación sean válidos y no estén vacíos
     val isFieldsValid = remember(
-        email,
-        isEmailValid,
-        password,
-        isPasswordValid,
-        confirmPassword,
-        isConfirmPasswordValid
+        email, isEmailValid,
+        password, isPasswordValid,
+        confirmPassword, isConfirmPasswordValid
     ) {
         email.isNotBlank() && isEmailValid &&
                 password.isNotBlank() && isPasswordValid &&
                 confirmPassword.isNotBlank() && isConfirmPasswordValid
+    }
+
+    // Si el registro fue exitoso, navegamos a home
+    LaunchedEffect(registrationSuccess) {
+        if (registrationSuccess) {
+            onRegisterSuccess()
+        }
     }
 
     BackHandler { activity?.finish() }
@@ -134,7 +127,6 @@ fun RegisterScreen(
         ) {
             ProfileImage(gender = gender, isDirector = isDirector)
 
-            // Campo de correo electrónico
             EmailField(
                 value = email,
                 onValueChange = viewModel::onEmailChange,
@@ -143,7 +135,6 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo de contraseña
             PasswordField(
                 value = password,
                 onValueChange = viewModel::onPasswordChange,
@@ -155,7 +146,6 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Campo de confirmación de contraseña
             PasswordField(
                 value = confirmPassword,
                 onValueChange = viewModel::onConfirmPasswordChange,
@@ -165,7 +155,6 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Selector de género
             GenderSelector(
                 options = genderOptions,
                 selected = gender,
@@ -173,14 +162,12 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Checkbox de director
             DirectorCheckbox(
                 isDirector = isDirector,
                 onDirectorChecked = viewModel::onDirectorChecked
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón de registro
             PrimaryButton(
                 text = "Registrarse",
                 onClick = {
@@ -198,9 +185,17 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Navegar a pantalla de login
             TextButton(onClick = onNavigateToLogin) {
                 Text(text = "¿Ya tienes cuenta? Inicia sesión")
+            }
+
+            errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

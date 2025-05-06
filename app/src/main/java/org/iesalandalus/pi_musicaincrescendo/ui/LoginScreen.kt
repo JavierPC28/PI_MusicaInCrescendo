@@ -17,15 +17,12 @@ import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
 
-/**
- * Pantalla de inicio de sesión.
- * Añadimos un LaunchedEffect para resetear campos al entrar.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
     val activity = LocalActivity.current
 
@@ -35,8 +32,18 @@ fun LoginScreen(
     val password by viewModel.password.collectAsState()
     val isPasswordValid by viewModel.isPasswordValid.collectAsState()
 
-    // Determinamos si el formulario es válido para habilitar el botón
+    val loginSuccess by viewModel.loginSuccess.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // Habilita el botón solo si los campos están completos y válidos
     val isFormValid = email.isNotBlank() && isEmailValid && password.isNotBlank() && isPasswordValid
+
+    // Si el login fue exitoso, navegamos a home
+    LaunchedEffect(loginSuccess) {
+        if (loginSuccess) {
+            onLoginSuccess()
+        }
+    }
 
     BackHandler { activity?.finish() }
 
@@ -97,12 +104,18 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            TextButton(
-                onClick = {
-                    onNavigateToRegister()
-                }
-            ) {
+            TextButton(onClick = onNavigateToRegister) {
                 Text(text = "¿No tienes cuenta? Regístrate")
+            }
+
+            // Mensaje de error debajo del formulario
+            errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
