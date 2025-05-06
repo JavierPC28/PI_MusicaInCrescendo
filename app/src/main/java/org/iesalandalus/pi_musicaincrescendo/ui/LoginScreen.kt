@@ -27,11 +27,6 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit
 ) {
-    // Aquí reseteamos automáticamente al componer por primera vez la pantalla
-    LaunchedEffect(Unit) {
-        viewModel.resetFields()
-    }
-
     val activity = LocalActivity.current
 
     val email by viewModel.email.collectAsState()

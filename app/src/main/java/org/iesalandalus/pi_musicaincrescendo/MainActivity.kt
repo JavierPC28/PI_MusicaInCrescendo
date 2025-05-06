@@ -6,13 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
-import org.iesalandalus.pi_musicaincrescendo.ui.LoginScreen
-import org.iesalandalus.pi_musicaincrescendo.ui.RegisterScreen
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
+import org.iesalandalus.pi_musicaincrescendo.ui.*
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.PI_MusicaInCrescendoTheme
 
 /**
@@ -41,19 +41,37 @@ fun AppNavHost() {
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
             val loginViewModel: LoginViewModel = viewModel()
+            val loginSuccess by loginViewModel.loginSuccess.collectAsState()
+
+            // Si ya inició sesión, navegamos a home
+            LaunchedEffect(loginSuccess) {
+                if (loginSuccess) navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+
             LoginScreen(
                 viewModel = loginViewModel,
-                onNavigateToRegister = {
-                    navController.navigate("register")
-                }
+                onNavigateToRegister = { navController.navigate("register") }
             )
         }
         composable("register") {
-            RegisterScreen(
-                onNavigateToLogin = {
-                    navController.popBackStack()
+            val registerViewModel: RegisterViewModel = viewModel()
+            val regSuccess by registerViewModel.registrationSuccess.collectAsState()
+
+            LaunchedEffect(regSuccess) {
+                if (regSuccess) navController.navigate("home") {
+                    popUpTo("register") { inclusive = true }
                 }
+            }
+
+            RegisterScreen(
+                viewModel = registerViewModel,
+                onNavigateToLogin = { navController.popBackStack() }
             )
+        }
+        composable("home") {
+            HomeScreen()
         }
     }
 }
