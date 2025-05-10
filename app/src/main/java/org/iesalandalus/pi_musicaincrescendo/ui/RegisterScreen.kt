@@ -58,7 +58,7 @@ private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -
             onCheckedChange = onDirectorChecked
         )
         Spacer(Modifier.width(8.dp))
-        Text(text = "Soy director")
+        Text(text = "Soy director/a")
     }
 }
 
