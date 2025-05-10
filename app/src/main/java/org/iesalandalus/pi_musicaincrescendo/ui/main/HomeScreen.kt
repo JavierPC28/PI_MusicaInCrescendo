@@ -1,4 +1,4 @@
-package org.iesalandalus.pi_musicaincrescendo.ui
+package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -7,17 +7,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 
-/**
- * Vista de configuración de perfil.
- */
 @Composable
-fun ProfileScreen() {
+fun HomeScreen() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Esta es la vista de configuración de perfil",
+            text = "¡Bienvenido a la mejor app del mundo!",
             fontSize = 20.sp
         )
     }

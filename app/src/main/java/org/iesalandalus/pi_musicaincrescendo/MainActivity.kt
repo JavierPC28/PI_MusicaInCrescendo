@@ -16,7 +16,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
-import org.iesalandalus.pi_musicaincrescendo.ui.*
+import org.iesalandalus.pi_musicaincrescendo.ui.auth.LoginScreen
+import org.iesalandalus.pi_musicaincrescendo.ui.auth.RegisterScreen
+import org.iesalandalus.pi_musicaincrescendo.ui.main.EventsScreen
+import org.iesalandalus.pi_musicaincrescendo.ui.main.HomeScreen
+import org.iesalandalus.pi_musicaincrescendo.ui.main.NotificationsScreen
+import org.iesalandalus.pi_musicaincrescendo.ui.main.ProfileScreen
+import org.iesalandalus.pi_musicaincrescendo.ui.main.RepertoireScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.PI_MusicaInCrescendoTheme
 
 class MainActivity : ComponentActivity() {

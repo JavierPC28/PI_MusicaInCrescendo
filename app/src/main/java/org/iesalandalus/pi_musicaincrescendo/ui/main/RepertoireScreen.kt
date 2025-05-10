@@ -1,4 +1,4 @@
-package org.iesalandalus.pi_musicaincrescendo.ui
+package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -8,16 +8,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 
 /**
- * Vista de eventos.
+ * Vista de repertorio.
  */
 @Composable
-fun EventsScreen() {
+fun RepertoireScreen() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Esta es la vista de los eventos",
+            text = "Esta es la vista del repertorio",
             fontSize = 20.sp
         )
     }

@@ -1,4 +1,4 @@
-package org.iesalandalus.pi_musicaincrescendo.ui
+package org.iesalandalus.pi_musicaincrescendo.ui.auth
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
