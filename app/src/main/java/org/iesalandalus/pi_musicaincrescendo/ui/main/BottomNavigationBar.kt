@@ -1,14 +1,13 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -23,13 +22,26 @@ private val IconSize = 40.dp
 // Margen superior para alinear los iconos hacia arriba
 private val IconTopPadding = 4.dp
 
+// Tamaño del cuadro de selección para el icono de Home
+private val HomeSelectedFrame = 48.dp
+
 // Definición de cada elemento de navegación
-enum class NavItem(val route: String, val iconRes: Int, val description: String) {
-    Events("events", R.drawable.events, "Eventos"),
-    Repertoire("repertoire", R.drawable.repertorio, "Repertorio"),
-    Home("home", R.drawable.banda_alcolea, "Inicio"),
-    Notifications("notifications", R.drawable.notificaciones, "Notificaciones"),
-    Profile("profile", R.drawable.ajustes, "Perfil")
+enum class NavItem(
+    val route: String,
+    val iconResNormal: Int,
+    val iconResPressed: Int,
+    val description: String
+) {
+    Events("events", R.drawable.events, R.drawable.events_pulsado, "Eventos"),
+    Repertoire("repertoire", R.drawable.repertorio, R.drawable.repertorio_pulsado, "Repertorio"),
+    Home("home", R.drawable.banda_alcolea, R.drawable.banda_alcolea, "Inicio"),
+    Notifications(
+        "notifications",
+        R.drawable.notificaciones,
+        R.drawable.notificaciones_pulsado,
+        "Notificaciones"
+    ),
+    Profile("profile", R.drawable.ajustes, R.drawable.ajustes_pulsado, "Perfil")
 }
 
 @Composable
@@ -46,6 +58,7 @@ fun BottomNavigationBar(
         NavItem.entries.forEach { item ->
             BottomBarIcon(
                 item = item,
+                isSelected = currentRoute == item.route,
                 onClick = { route ->
                     if (currentRoute != route) {
                         navController.navigate(route) {
@@ -62,18 +75,43 @@ fun BottomNavigationBar(
 @Composable
 private fun RowScope.BottomBarIcon(
     item: NavItem,
+    isSelected: Boolean,
     onClick: (String) -> Unit
 ) {
-    IconButton(
-        onClick = { onClick(item.route) },
-        modifier = Modifier
+    // Seleccionamos el recurso de imagen según estado
+    val iconRes = if (isSelected) item.iconResPressed else item.iconResNormal
+
+    // Para Home, cuando esté seleccionado, aplicamos un marco ajustado
+    val modifier = if (item == NavItem.Home && isSelected) {
+        Modifier
             .weight(1f)
             .padding(top = IconTopPadding)
+            .size(HomeSelectedFrame)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+    } else {
+        Modifier
+            .weight(1f)
+            .padding(top = IconTopPadding)
+    }
+
+    IconButton(
+        onClick = { onClick(item.route) },
+        modifier = modifier
     ) {
-        Icon(
-            painter = androidx.compose.ui.res.painterResource(id = item.iconRes),
-            contentDescription = item.description,
-            modifier = Modifier.height(IconSize)
-        )
+        // Si estamos en Home, centramos icono dentro del marco
+        if (item == NavItem.Home && isSelected) {
+            Image(
+                painter = androidx.compose.ui.res.painterResource(id = iconRes),
+                contentDescription = item.description,
+                modifier = Modifier.size(IconSize)
+            )
+        } else {
+            Icon(
+                painter = androidx.compose.ui.res.painterResource(id = iconRes),
+                contentDescription = item.description,
+                modifier = Modifier.height(IconSize)
+            )
+        }
     }
 }
