@@ -1,7 +1,7 @@
 package org.iesalandalus.pi_musicaincrescendo.data.repository
 
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.tasks.await
 
 class AuthRepositoryImpl(
@@ -17,4 +17,8 @@ class AuthRepositoryImpl(
     }
 
     override fun currentUserEmail(): String? = auth.currentUser?.email
+
+    override fun logout() {
+        auth.signOut()
+    }
 }

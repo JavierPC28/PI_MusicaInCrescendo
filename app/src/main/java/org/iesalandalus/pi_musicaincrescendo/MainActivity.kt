@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.LoginScreen
@@ -38,9 +40,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    // Determinamos pantalla inicial según usuario autenticado
+    val startDestination = if (AuthRepositoryImpl().currentUserEmail() != null) {
+        "home"
+    } else {
+        "login"
+    }
+
     NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = startDestination
     ) {
         composable("login") {
             val loginViewModel: LoginViewModel = viewModel()
@@ -66,7 +75,21 @@ fun AppNavHost() {
             Scaffold(
                 bottomBar = { BottomNavigationBar(navController) }
             ) { innerPadding ->
-                HomeScreenWrapper(innerPadding)
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                ) {
+                    val homeViewModel: HomeViewModel = viewModel()
+                    HomeScreen(
+                        onLogout = {
+                            homeViewModel.logout()
+                            navController.navigate("login") {
+                                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                            }
+                        }
+                    )
+                }
             }
         }
         composable("events") {
@@ -97,17 +120,6 @@ fun AppNavHost() {
                 RepertoireScreenWrapper(innerPadding)
             }
         }
-    }
-}
-
-@Composable
-private fun HomeScreenWrapper(innerPadding: PaddingValues) {
-    Box(
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()
-    ) {
-        HomeScreen()
     }
 }
 
