@@ -46,7 +46,6 @@ fun BottomNavigationBar(
         NavItem.entries.forEach { item ->
             BottomBarIcon(
                 item = item,
-                currentRoute = currentRoute,
                 onClick = { route ->
                     if (currentRoute != route) {
                         navController.navigate(route) {
@@ -63,7 +62,6 @@ fun BottomNavigationBar(
 @Composable
 private fun RowScope.BottomBarIcon(
     item: NavItem,
-    currentRoute: String?,
     onClick: (String) -> Unit
 ) {
     IconButton(
