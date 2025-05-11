@@ -2,6 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,10 +15,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import org.iesalandalus.pi_musicaincrescendo.R
 
 // Altura personalizada para la barra de navegación
-private val BottomBarHeight = 50.dp
+private val BottomBarHeight = 80.dp
 
 // Tamaño de iconos
-private val IconSize = 30.dp
+private val IconSize = 40.dp
+
+// Margen superior para alinear los iconos hacia arriba
+private val IconTopPadding = 4.dp
 
 // Definición de cada elemento de navegación
 enum class NavItem(val route: String, val iconRes: Int, val description: String) {
@@ -42,6 +46,7 @@ fun BottomNavigationBar(
         NavItem.entries.forEach { item ->
             BottomBarIcon(
                 item = item,
+                currentRoute = currentRoute,
                 onClick = { route ->
                     if (currentRoute != route) {
                         navController.navigate(route) {
@@ -58,11 +63,14 @@ fun BottomNavigationBar(
 @Composable
 private fun RowScope.BottomBarIcon(
     item: NavItem,
+    currentRoute: String?,
     onClick: (String) -> Unit
 ) {
     IconButton(
         onClick = { onClick(item.route) },
-        modifier = Modifier.weight(1f)
+        modifier = Modifier
+            .weight(1f)
+            .padding(top = IconTopPadding)
     ) {
         Icon(
             painter = androidx.compose.ui.res.painterResource(id = item.iconRes),
