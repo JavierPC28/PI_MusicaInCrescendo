@@ -1,4 +1,4 @@
-package org.iesalandalus.pi_musicaincrescendo.ui.main
+package org.iesalandalus.pi_musicaincrescendo.common.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
