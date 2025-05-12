@@ -40,12 +40,7 @@ enum class NavItem(
         R.drawable.notificaciones_pulsado,
         "Notificaciones"
     ),
-    Profile("profile", R.drawable.ajustes, R.drawable.ajustes_pulsado, "Perfil");
-
-    companion object {
-        // Para iterar sobre los valores
-        val entries = values()
-    }
+    Profile("profile", R.drawable.ajustes, R.drawable.ajustes_pulsado, "Perfil")
 }
 
 @Composable
