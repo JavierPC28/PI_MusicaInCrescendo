@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +40,12 @@ enum class NavItem(
         R.drawable.notificaciones_pulsado,
         "Notificaciones"
     ),
-    Profile("profile", R.drawable.ajustes, R.drawable.ajustes_pulsado, "Perfil")
+    Profile("profile", R.drawable.ajustes, R.drawable.ajustes_pulsado, "Perfil");
+
+    companion object {
+        // Para iterar sobre los valores
+        val entries = values()
+    }
 }
 
 @Composable
@@ -51,8 +55,8 @@ fun BottomNavigationBar(
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry.value?.destination?.route
 
-    BottomAppBar(
-        containerColor = MaterialTheme.colorScheme.background,
+    androidx.compose.material3.BottomAppBar(
+        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
         modifier = Modifier.height(BottomBarHeight)
     ) {
         NavItem.entries.forEach { item ->
@@ -81,37 +85,30 @@ private fun RowScope.BottomBarIcon(
     // Seleccionamos el recurso de imagen según estado
     val iconRes = if (isSelected) item.iconResPressed else item.iconResNormal
 
-    // Para Home, cuando esté seleccionado, aplicamos un marco ajustado
-    val modifier = if (item == NavItem.Home && isSelected) {
-        Modifier
-            .weight(1f)
-            .padding(top = IconTopPadding)
+    // Modifier base con margen superior
+    var modifier = Modifier
+        .weight(1f)
+        .padding(top = IconTopPadding)
+
+    // Para Home seleccionado, aplicamos marco
+    if (item == NavItem.Home && isSelected) {
+        modifier = modifier
             .size(HomeSelectedFrame)
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-    } else {
-        Modifier
-            .weight(1f)
-            .padding(top = IconTopPadding)
+            .background(
+                androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            )
     }
 
-    IconButton(
+    androidx.compose.material3.IconButton(
         onClick = { onClick(item.route) },
         modifier = modifier
     ) {
-        // Si estamos en Home, centramos icono dentro del marco
-        if (item == NavItem.Home && isSelected) {
-            Image(
-                painter = androidx.compose.ui.res.painterResource(id = iconRes),
-                contentDescription = item.description,
-                modifier = Modifier.size(IconSize)
-            )
-        } else {
-            Icon(
-                painter = androidx.compose.ui.res.painterResource(id = iconRes),
-                contentDescription = item.description,
-                modifier = Modifier.height(IconSize)
-            )
-        }
+        // Usamos Image para mostrar el icono
+        Image(
+            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+            contentDescription = item.description,
+            modifier = Modifier.size(IconSize)
+        )
     }
 }
