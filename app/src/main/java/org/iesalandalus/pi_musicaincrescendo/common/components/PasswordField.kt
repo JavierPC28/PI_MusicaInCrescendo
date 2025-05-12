@@ -35,7 +35,7 @@ fun PasswordField(
             trailingIcon = {
                 Icon(
                     painter = painterResource(
-                        id = if (visible) R.drawable.ic_visibility else R.drawable.ic_visibility_off
+                        id = if (visible) R.drawable.ojo_abierto else R.drawable.ojo_cerrado
                     ),
                     contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña",
                     modifier = Modifier.pointerInput(Unit) {
