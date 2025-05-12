@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.components.BottomNavigationBar
@@ -39,12 +40,103 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val startDestination = if (AuthRepositoryImpl().currentUserEmail() != null) "home" else "login"
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        composable("login") {
+            Scaffold { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                ) {
+                    LoginScreen(
+                        onNavigateToRegister = { navController.navigate("register") },
+                        onLoginSuccess = {
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        composable("register") {
+            Scaffold { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                ) {
+                    RegisterScreen(
+                        onNavigateToLogin = { navController.popBackStack() },
+                        onRegisterSuccess = {
+                            navController.navigate("home") {
+                                popUpTo("register") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        // Rutas con drawer y navegación inferior
+        listOf(
+            "home" to "Inicio",
+            "events" to "Eventos",
+            "repertoire" to "Repertorio",
+            "notifications" to "Notificaciones",
+            "profile" to "Perfil"
+        ).forEach { (route, title) ->
+            composable(route) {
+                MainScaffold(
+                    navController = navController,
+                    title = title
+                ) { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                    ) {
+                        when (route) {
+                            "home" -> HomeScreenWrapper(onLogout = {
+                                AuthRepositoryImpl().logout()
+                                navController.navigate("login") {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                }
+                            })
+
+                            "events" -> EventsScreenWrapper(innerPadding)
+                            "repertoire" -> RepertoireScreenWrapper(innerPadding)
+                            "notifications" -> NotificationsScreenWrapper(innerPadding)
+                            "profile" -> ProfileScreenWrapper(innerPadding)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScaffold(
+    navController: NavHostController,
+    title: String,
+    content: @Composable (PaddingValues) -> Unit
+) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val startDestination = if (AuthRepositoryImpl().currentUserEmail() != null) "home" else "login"
 
     ModalNavigationDrawer(
         drawerState = drawerState,
+        gesturesEnabled = true,
         drawerContent = {
             ModalDrawerSheet {
                 Text(
@@ -55,93 +147,16 @@ fun AppNavHost() {
             }
         }
     ) {
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            composable("login") {
-                Scaffold { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                    ) {
-                        LoginScreen(
-                            onNavigateToRegister = { navController.navigate("register") },
-                            onLoginSuccess = {
-                                navController.navigate("home") {
-                                    popUpTo("login") {
-                                        inclusive = true
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-            composable("register") {
-                Scaffold { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                    ) {
-                        RegisterScreen(
-                            onNavigateToLogin = { navController.popBackStack() },
-                            onRegisterSuccess = {
-                                navController.navigate("home") {
-                                    popUpTo("register") {
-                                        inclusive = true
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-
-            listOf(
-                "home" to "Inicio",
-                "events" to "Eventos",
-                "repertoire" to "Repertorio",
-                "notifications" to "Notificaciones",
-                "profile" to "Perfil"
-            ).forEach { (route, title) ->
-                composable(route) {
-                    Scaffold(
-                        topBar = {
-                            TopBarWithDrawer(
-                                title = title,
-                                onMenuClick = { scope.launch { drawerState.open() } }
-                            )
-                        },
-                        bottomBar = { BottomNavigationBar(navController) }
-                    ) { innerPadding ->
-                        Box(
-                            modifier = Modifier
-                                .padding(innerPadding)
-                                .fillMaxSize()
-                        ) {
-                            when (route) {
-                                "home" -> HomeScreenWrapper(onLogout = {
-                                    AuthRepositoryImpl().logout()
-                                    navController.navigate("login") {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            inclusive = true
-                                        }
-                                    }
-                                })
-
-                                "events" -> EventsScreenWrapper(innerPadding)
-                                "repertoire" -> RepertoireScreenWrapper(innerPadding)
-                                "notifications" -> NotificationsScreenWrapper(innerPadding)
-                                "profile" -> ProfileScreenWrapper(innerPadding)
-                            }
-                        }
-                    }
-                }
-            }
+        Scaffold(
+            topBar = {
+                TopBarWithDrawer(
+                    title = title,
+                    onMenuClick = { scope.launch { drawerState.open() } }
+                )
+            },
+            bottomBar = { BottomNavigationBar(navController) }
+        ) { innerPadding ->
+            content(innerPadding)
         }
     }
 }
