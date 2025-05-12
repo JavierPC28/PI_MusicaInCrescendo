@@ -8,12 +8,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import kotlinx.coroutines.launch
-import org.iesalandalus.pi_musicaincrescendo.common.components.BottomNavigationBar
-import org.iesalandalus.pi_musicaincrescendo.common.components.TopBarWithDrawer
+import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.LoginScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.RegisterScreen
@@ -139,11 +137,7 @@ fun MainScaffold(
         gesturesEnabled = true,
         drawerContent = {
             ModalDrawerSheet {
-                Text(
-                    text = "MIS GRUPOS",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
+                DrawerContent()
             }
         }
     ) {
