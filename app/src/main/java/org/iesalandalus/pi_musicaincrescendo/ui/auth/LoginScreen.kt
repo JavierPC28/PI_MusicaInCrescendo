@@ -24,6 +24,11 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
+    // Resetea estado al entrar a la pantalla
+    LaunchedEffect(Unit) {
+        viewModel.reset()
+    }
+
     val activity = LocalActivity.current
 
     val email by viewModel.email.collectAsState()

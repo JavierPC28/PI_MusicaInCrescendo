@@ -55,4 +55,13 @@ class LoginViewModel(
             }
         }
     }
+
+    fun reset() {
+        _email.value = ""
+        _isEmailValid.value = true
+        _password.value = ""
+        _isPasswordValid.value = true
+        _loginSuccess.value = false
+        _errorMessage.value = null
+    }
 }

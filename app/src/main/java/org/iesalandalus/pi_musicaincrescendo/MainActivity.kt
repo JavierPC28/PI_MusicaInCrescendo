@@ -68,12 +68,15 @@ fun AppNavHost() {
             Scaffold { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding)) {
                     RegisterScreen(
-                        onNavigateToLogin = { navController.popBackStack() },
+                        onNavigateToLogin = {
+                            navController.popBackStack()
+                            navController.navigate("login") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                        },
                         onRegisterSuccess = {
                             navController.navigate("home") {
-                                popUpTo("register") {
-                                    inclusive = true
-                                }
+                                popUpTo("register") { inclusive = true }
                             }
                         }
                     )
