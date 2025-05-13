@@ -31,42 +31,23 @@ fun DrawerContent(
     onExit: () -> Unit
 ) {
     val context = LocalContext.current
-
     val grupos = remember {
         listOf(
             Grupo(
-                id = 0,
+                0,
                 iconRes = R.drawable.banda_alcolea,
                 texto = "Banda Municipal de Música de Alcolea"
             ),
-            Grupo(
-                id = 1,
-                iconRes = R.drawable.banda_ejido,
-                texto = "Banda Sinfónica El Ejido"
-            ),
-            Grupo(
-                id = 2,
-                iconVector = Icons.Default.Add,
-                texto = "Crea un grupo nuevo"
-            )
+            Grupo(1, iconRes = R.drawable.banda_ejido, texto = "Banda Sinfónica El Ejido"),
+            Grupo(2, iconVector = Icons.Default.Add, texto = "Crea un grupo nuevo")
         )
     }
-
     val opcionesInferiores = remember {
         listOf(
-            Grupo(
-                id = 3,
-                iconRes = R.drawable.cerrar_sesion,
-                texto = "Cerrar Sesión"
-            ),
-            Grupo(
-                id = 4,
-                iconRes = R.drawable.salir_app,
-                texto = "Salir"
-            )
+            Grupo(3, iconRes = R.drawable.cerrar_sesion, texto = "Cerrar Sesión"),
+            Grupo(4, iconRes = R.drawable.salir_app, texto = "Salir")
         )
     }
-
     var seleccionado by rememberSaveable { mutableIntStateOf(0) }
 
     Column(
@@ -82,84 +63,85 @@ fun DrawerContent(
             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
         )
 
+        // Lista de grupos principales
         grupos.forEach { grupo ->
             Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        color = if (grupo.id == seleccionado)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                        else
-                            MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clickable {
-                        when (grupo.id) {
-                            2 -> Toast.makeText(
-                                context,
-                                "Funcionalidad en desarrollo",
-                                Toast.LENGTH_SHORT
-                            ).show()
+            GrupoItem(
+                grupo = grupo,
+                isSelected = (grupo.id == seleccionado),
+                onClick = {
+                    when (grupo.id) {
+                        2 -> Toast.makeText(
+                            context,
+                            "Funcionalidad en desarrollo",
+                            Toast.LENGTH_SHORT
+                        ).show()
 
-                            else -> seleccionado = grupo.id
-                        }
+                        else -> seleccionado = grupo.id
                     }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                if (grupo.iconRes != null) {
-                    Image(
-                        painter = painterResource(id = grupo.iconRes),
-                        contentDescription = grupo.texto,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
-                } else if (grupo.iconVector != null) {
-                    Icon(
-                        imageVector = grupo.iconVector,
-                        contentDescription = grupo.texto,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                    )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge)
-            }
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Opciones inferiores (Cerrar sesión y Salir)
         opcionesInferiores.forEach { grupo ->
             Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        when (grupo.id) {
-                            3 -> onLogout()
-                            4 -> onExit()
-                        }
+            GrupoItem(
+                grupo = grupo,
+                isSelected = false,
+                onClick = {
+                    when (grupo.id) {
+                        3 -> onLogout()
+                        4 -> onExit()
                     }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = grupo.iconRes!!),
-                    contentDescription = grupo.texto,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge)
-            }
+                }
+            )
         }
+    }
+}
+
+@Composable
+private fun GrupoItem(
+    grupo: Grupo,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                color = if (isSelected)
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                else
+                    MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        grupo.iconRes?.let {
+            Image(
+                painter = painterResource(id = it),
+                contentDescription = grupo.texto,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        } ?: grupo.iconVector?.let {
+            Icon(
+                imageVector = it,
+                contentDescription = grupo.texto,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge)
     }
 }

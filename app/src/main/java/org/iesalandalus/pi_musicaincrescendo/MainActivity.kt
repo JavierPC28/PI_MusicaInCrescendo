@@ -12,9 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
@@ -52,18 +50,34 @@ fun AppNavHost() {
     ) {
         composable("login") {
             Scaffold { innerPadding ->
-                LoginScreen(
-                    onNavigateToRegister = { navController.navigate("register") },
-                    onLoginSuccess = { navController.navigate("home") { popUpTo("login") { inclusive = true } } }
-                )
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    LoginScreen(
+                        onNavigateToRegister = { navController.navigate("register") },
+                        onLoginSuccess = {
+                            navController.navigate("home") {
+                                popUpTo("login") {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
         composable("register") {
             Scaffold { innerPadding ->
-                RegisterScreen(
-                    onNavigateToLogin = { navController.popBackStack() },
-                    onRegisterSuccess = { navController.navigate("home") { popUpTo("register") { inclusive = true } } }
-                )
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    RegisterScreen(
+                        onNavigateToLogin = { navController.popBackStack() },
+                        onRegisterSuccess = {
+                            navController.navigate("home") {
+                                popUpTo("register") {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
 
