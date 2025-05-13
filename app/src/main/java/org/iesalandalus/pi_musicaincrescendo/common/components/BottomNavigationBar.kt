@@ -1,11 +1,10 @@
 package org.iesalandalus.pi_musicaincrescendo.common.components
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -16,13 +15,16 @@ import org.iesalandalus.pi_musicaincrescendo.R
 // Altura personalizada para la barra de navegación
 private val BottomBarHeight = 80.dp
 
-// Tamaño de iconos
+// Tamaño de iconos y bordes
 private val IconSize = 40.dp
 
-// Tamaño del cuadro de selección para el icono de Home
-private val HomeSelectedFrame = IconSize
+// Espacio de marco: 3dp por cada lado para sobresalir del icono
+private val FramePadding = 6.dp
+private val FrameSize = IconSize + FramePadding * 2
 
-// Definición de cada elemento de navegación
+// Radio de esquinas para imágenes y marco
+private val ImageCornerRadius = 8.dp
+
 enum class NavItem(
     val route: String,
     val iconResNormal: Int,
@@ -76,28 +78,40 @@ private fun RowScope.BottomBarIcon(
     onClick: (String) -> Unit
 ) {
     val iconRes = if (isSelected) item.iconResPressed else item.iconResNormal
-    var modifier = Modifier.weight(1f)
+    val imageShape = RoundedCornerShape(ImageCornerRadius)
 
-    if (item == NavItem.Home && isSelected) {
-        modifier = modifier
-            .size(HomeSelectedFrame)
-            .clip(CircleShape)
-            .background(
-                androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                CircleShape
-            )
-    }
-
-    androidx.compose.material3.IconButton(
-        onClick = { onClick(item.route) },
-        modifier = modifier
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(FrameSize),
+        contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = androidx.compose.ui.res.painterResource(id = iconRes),
-            contentDescription = item.description,
+        // Marco de fondo para el ítem seleccionado (vista Home)
+        if (item == NavItem.Home && isSelected) {
+            Box(
+                modifier = Modifier
+                    .size(FrameSize)
+                    .clip(imageShape)
+                    .background(
+                        androidx.compose.material3.MaterialTheme.colorScheme.primary
+                            .copy(alpha = 0.2f)
+                    )
+            )
+        }
+
+        // Imagen cuadrada con bordes redondeados a 8dp y margen de marco
+        Box(
             modifier = Modifier
                 .size(IconSize)
-                .clip(RoundedCornerShape(8.dp))
-        )
+                .clip(imageShape)
+                .clickable { onClick(item.route) }
+        ) {
+            Image(
+                painter = androidx.compose.ui.res.painterResource(id = iconRes),
+                contentDescription = item.description,
+                modifier = Modifier
+                    .fillMaxSize()
+            )
+        }
     }
 }
