@@ -3,6 +3,7 @@ package org.iesalandalus.pi_musicaincrescendo.common.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,11 +19,8 @@ private val BottomBarHeight = 80.dp
 // Tamaño de iconos
 private val IconSize = 40.dp
 
-// Margen superior para alinear los iconos hacia arriba
-private val IconTopPadding = 4.dp
-
 // Tamaño del cuadro de selección para el icono de Home
-private val HomeSelectedFrame = 48.dp
+private val HomeSelectedFrame = IconSize
 
 // Definición de cada elemento de navegación
 enum class NavItem(
@@ -77,21 +75,16 @@ private fun RowScope.BottomBarIcon(
     isSelected: Boolean,
     onClick: (String) -> Unit
 ) {
-    // Seleccionamos el recurso de imagen según estado
     val iconRes = if (isSelected) item.iconResPressed else item.iconResNormal
+    var modifier = Modifier.weight(1f)
 
-    // Modifier base con margen superior
-    var modifier = Modifier
-        .weight(1f)
-        .padding(top = IconTopPadding)
-
-    // Para Home seleccionado, aplicamos marco
     if (item == NavItem.Home && isSelected) {
         modifier = modifier
             .size(HomeSelectedFrame)
-            .clip(RoundedCornerShape(8.dp))
+            .clip(CircleShape)
             .background(
-                androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                CircleShape
             )
     }
 
@@ -99,11 +92,12 @@ private fun RowScope.BottomBarIcon(
         onClick = { onClick(item.route) },
         modifier = modifier
     ) {
-        // Usamos Image para mostrar el icono
         Image(
             painter = androidx.compose.ui.res.painterResource(id = iconRes),
             contentDescription = item.description,
-            modifier = Modifier.size(IconSize)
+            modifier = Modifier
+                .size(IconSize)
+                .clip(RoundedCornerShape(8.dp))
         )
     }
 }
