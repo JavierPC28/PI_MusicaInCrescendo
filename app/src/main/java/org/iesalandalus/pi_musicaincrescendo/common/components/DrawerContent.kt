@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -125,13 +126,19 @@ private fun GrupoItem(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         grupo.iconRes?.let {
-            Image(
-                painter = painterResource(id = it),
-                contentDescription = grupo.texto,
+            Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(8.dp))
-            )
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                Image(
+                    painter = painterResource(id = it),
+                    contentDescription = grupo.texto,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         } ?: grupo.iconVector?.let {
             Icon(
                 imageVector = it,
