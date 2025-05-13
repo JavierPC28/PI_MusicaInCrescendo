@@ -25,14 +25,13 @@ private data class Grupo(
     val texto: String
 )
 
-/**
- * Contenido dinámico del menú lateral con la lista de grupos.
- */
 @Composable
-fun DrawerContent() {
+fun DrawerContent(
+    onLogout: () -> Unit,
+    onExit: () -> Unit
+) {
     val context = LocalContext.current
 
-    // Lista de grupos
     val grupos = remember {
         listOf(
             Grupo(
@@ -53,7 +52,21 @@ fun DrawerContent() {
         )
     }
 
-    // Estado del grupo seleccionado
+    val opcionesInferiores = remember {
+        listOf(
+            Grupo(
+                id = 3,
+                iconRes = R.drawable.cerrar_sesion,
+                texto = "Cerrar Sesión"
+            ),
+            Grupo(
+                id = 4,
+                iconRes = R.drawable.salir_app,
+                texto = "Salir"
+            )
+        )
+    }
+
     var seleccionado by rememberSaveable { mutableIntStateOf(0) }
 
     Column(
@@ -85,19 +98,18 @@ fun DrawerContent() {
                         shape = RoundedCornerShape(8.dp)
                     )
                     .clickable {
-                        if (grupo.id == 2) {
-                            Toast.makeText(
+                        when (grupo.id) {
+                            2 -> Toast.makeText(
                                 context,
                                 "Funcionalidad en desarrollo",
                                 Toast.LENGTH_SHORT
                             ).show()
-                        } else {
-                            seleccionado = grupo.id
+
+                            else -> seleccionado = grupo.id
                         }
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                // Carga del recurso dentro del contexto composable
                 if (grupo.iconRes != null) {
                     Image(
                         painter = painterResource(id = grupo.iconRes),
@@ -116,10 +128,37 @@ fun DrawerContent() {
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = grupo.texto,
-                    style = MaterialTheme.typography.bodyLarge
+                Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        opcionesInferiores.forEach { grupo ->
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        when (grupo.id) {
+                            3 -> onLogout()
+                            4 -> onExit()
+                        }
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = grupo.iconRes!!),
+                    contentDescription = grupo.texto,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
                 )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge)
             }
         }
     }

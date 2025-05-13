@@ -6,13 +6,11 @@ import androidx.compose.ui.Modifier
 import org.iesalandalus.pi_musicaincrescendo.ui.main.*
 
 /**
- * Wrapper de HomeScreen que recibe el callback de logout del ViewModel.
+ * Wrapper de HomeScreen.
  */
 @Composable
-fun HomeScreenWrapper(onLogout: () -> Unit) {
-    HomeScreen(
-        onLogout = onLogout
-    )
+fun HomeScreenWrapper() {
+    HomeScreen()
 }
 
 /**

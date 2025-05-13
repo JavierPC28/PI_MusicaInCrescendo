@@ -1,5 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,11 +9,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.MainViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.LoginScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.RegisterScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.navigation.*
@@ -34,7 +40,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
@@ -47,74 +52,39 @@ fun AppNavHost() {
     ) {
         composable("login") {
             Scaffold { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                ) {
-                    LoginScreen(
-                        onNavigateToRegister = { navController.navigate("register") },
-                        onLoginSuccess = {
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        }
-                    )
-                }
+                LoginScreen(
+                    onNavigateToRegister = { navController.navigate("register") },
+                    onLoginSuccess = { navController.navigate("home") { popUpTo("login") { inclusive = true } } }
+                )
             }
         }
         composable("register") {
             Scaffold { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                ) {
-                    RegisterScreen(
-                        onNavigateToLogin = { navController.popBackStack() },
-                        onRegisterSuccess = {
-                            navController.navigate("home") {
-                                popUpTo("register") { inclusive = true }
-                            }
-                        }
-                    )
-                }
+                RegisterScreen(
+                    onNavigateToLogin = { navController.popBackStack() },
+                    onRegisterSuccess = { navController.navigate("home") { popUpTo("register") { inclusive = true } } }
+                )
             }
         }
 
-        // Rutas con drawer y navegación inferior
-        listOf(
-            "home" to "Inicio",
-            "events" to "Eventos",
-            "repertoire" to "Repertorio",
-            "notifications" to "Notificaciones",
-            "profile" to "Perfil"
-        ).forEach { (route, title) ->
+        listOf("home", "events", "repertoire", "notifications", "profile").forEach { route ->
             composable(route) {
                 MainScaffold(
                     navController = navController,
-                    title = title
+                    title = when (route) {
+                        "home" -> "Inicio"
+                        "events" -> "Eventos"
+                        "repertoire" -> "Repertorio"
+                        "notifications" -> "Notificaciones"
+                        else -> "Perfil"
+                    }
                 ) { innerPadding ->
-                    Box(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize()
-                    ) {
-                        when (route) {
-                            "home" -> HomeScreenWrapper(onLogout = {
-                                AuthRepositoryImpl().logout()
-                                navController.navigate("login") {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        inclusive = true
-                                    }
-                                }
-                            })
-
-                            "events" -> EventsScreenWrapper(innerPadding)
-                            "repertoire" -> RepertoireScreenWrapper(innerPadding)
-                            "notifications" -> NotificationsScreenWrapper(innerPadding)
-                            "profile" -> ProfileScreenWrapper(innerPadding)
-                        }
+                    when (route) {
+                        "home" -> HomeScreenWrapper()
+                        "events" -> EventsScreenWrapper(innerPadding)
+                        "repertoire" -> RepertoireScreenWrapper(innerPadding)
+                        "notifications" -> NotificationsScreenWrapper(innerPadding)
+                        "profile" -> ProfileScreenWrapper(innerPadding)
                     }
                 }
             }
@@ -130,13 +100,20 @@ fun MainScaffold(
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val mainViewModel: MainViewModel = viewModel()
+    val context = LocalContext.current
 
     ModalNavigationDrawer(
         drawerState = drawerState,
-        gesturesEnabled = true,
         drawerContent = {
             ModalDrawerSheet {
-                DrawerContent()
+                DrawerContent(
+                    onLogout = {
+                        mainViewModel.logout()
+                        navController.navigate("login") { popUpTo(0) }
+                    },
+                    onExit = { (context as Activity).finish() }
+                )
             }
         }
     ) {
@@ -148,8 +125,6 @@ fun MainScaffold(
                 )
             },
             bottomBar = { BottomNavigationBar(navController) }
-        ) { innerPadding ->
-            content(innerPadding)
-        }
+        ) { innerPadding -> content(innerPadding) }
     }
 }
