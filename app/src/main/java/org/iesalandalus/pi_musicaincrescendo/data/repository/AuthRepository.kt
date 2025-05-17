@@ -1,6 +1,7 @@
 package org.iesalandalus.pi_musicaincrescendo.data.repository
 
 import com.google.firebase.auth.AuthResult
+import java.util.Date
 
 interface AuthRepository {
     suspend fun register(email: String, password: String): AuthResult
@@ -8,4 +9,5 @@ interface AuthRepository {
     fun currentUserEmail(): String?
 
     fun logout()
+    fun currentUserRegistrationDate(): Date?
 }
