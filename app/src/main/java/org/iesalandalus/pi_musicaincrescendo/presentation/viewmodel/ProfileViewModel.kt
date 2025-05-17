@@ -1,42 +1,74 @@
 package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import org.iesalandalus.pi_musicaincrescendo.data.repository.ProfileRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateDisplayNameUseCase
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel.UiState.*
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * ViewModel encargado de obtener datos del usuario actual
- */
 class ProfileViewModel(
-    authRepo: AuthRepositoryImpl = AuthRepositoryImpl()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val updateUseCase: UpdateDisplayNameUseCase = UpdateDisplayNameUseCase(
+        ProfileRepositoryImpl()
+    )
 ) : ViewModel() {
 
-    // Correo del usuario actual
-    private val email: String = authRepo.currentUserEmail() ?: ""
-
-    /**
-     * Nombre de usuario: parte izquierda del correo con primera letra mayúscula
-     */
-    val displayName: String by lazy {
-        email
-            .substringBefore("@")
-            .lowercase(Locale.getDefault())
-            .replaceFirstChar { it.uppercaseChar().toString() }
+    // Estado interno de UI
+    sealed class UiState {
+        object Idle : UiState()
+        object Loading : UiState()
+        data class Success(val name: String) : UiState()
+        data class Error(val message: String) : UiState()
     }
 
-    // Fecha de registro en la base de datos
-    private val registrationDate: Date? = authRepo.currentUserRegistrationDate()
+    private val _uiState = MutableStateFlow<UiState>(Idle)
+    val uiState: StateFlow<UiState> = _uiState
+
+    // Nombre actual mostrado
+    private val _displayName = MutableStateFlow<String>("")
+    val displayName: StateFlow<String> = _displayName
+
+    // Fecha de registro formateada
+    val registrationDateFormatted: String by lazy {
+        auth.currentUser?.metadata?.creationTimestamp?.let {
+            SimpleDateFormat("d 'de' MMMM 'de' yyyy", Locale("es", "ES")).format(Date(it))
+        } ?: ""
+    }
+
+    init {
+        // Carga inicial del nombre
+        auth.currentUser?.let { user ->
+            _displayName.value = user.email
+                ?.substringBefore("@")
+                ?.replaceFirstChar { it.uppercaseChar() }
+                ?: ""
+        }
+    }
 
     /**
-     * Fecha formateada en español: ej. "5 de abril de 2023"
+     * Lanza el flujo de actualización de nombre.
      */
-    val registrationDateFormatted: String by lazy {
-        registrationDate?.let {
-            val localeES = Locale("es", "ES")
-            val sdf = SimpleDateFormat("d 'de' MMMM 'de' yyyy", localeES)
-            sdf.format(it)
-        } ?: ""
+    fun onUpdateName(newName: String) {
+        val user = auth.currentUser ?: run {
+            _uiState.value = Error("Usuario no autenticado")
+            return
+        }
+        _uiState.value = Loading
+        viewModelScope.launch {
+            try {
+                updateUseCase(user.uid, newName)
+                _displayName.value = newName
+                _uiState.value = Success(newName)
+            } catch (e: Exception) {
+                _uiState.value = Error(e.message ?: "Error desconocido")
+            }
+        }
     }
 }
