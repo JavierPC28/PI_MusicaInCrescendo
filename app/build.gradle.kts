@@ -41,6 +41,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.accompanist.systemuicontroller)
+
     // Core y Activity KTX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.ktx)
