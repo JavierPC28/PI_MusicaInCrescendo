@@ -83,6 +83,7 @@ fun RegisterScreen(
     val registrationSuccess by viewModel.registrationSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    // Validación global de campos
     val isFieldsValid = remember(
         email, isEmailValid,
         password, isPasswordValid,
@@ -93,7 +94,7 @@ fun RegisterScreen(
                 confirmPassword.isNotBlank() && isConfirmPasswordValid
     }
 
-    // Si el registro fue exitoso, navegamos a home
+    // Cuando el registro es exitoso, navegamos a home
     LaunchedEffect(registrationSuccess) {
         if (registrationSuccess) {
             onRegisterSuccess()
@@ -101,6 +102,19 @@ fun RegisterScreen(
     }
 
     BackHandler { activity?.finish() }
+
+    // Función local que encapsula la lógica del clic en "Registrarse"
+    fun handleRegisterClick() {
+        if (gender == "-- Seleccione su género --") {
+            Toast.makeText(
+                context,
+                "Por favor, seleccione un sexo",
+                Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            viewModel.onRegister()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -170,17 +184,7 @@ fun RegisterScreen(
 
             PrimaryButton(
                 text = "Registrarse",
-                onClick = {
-                    if (gender == "-- Seleccione su género --") {
-                        Toast.makeText(
-                            context,
-                            "Por favor, seleccione un sexo",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        viewModel.onRegister()
-                    }
-                },
+                onClick = { handleRegisterClick() },
                 enabled = isFieldsValid
             )
             Spacer(modifier = Modifier.height(8.dp))

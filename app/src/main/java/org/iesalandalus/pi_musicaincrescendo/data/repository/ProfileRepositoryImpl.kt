@@ -1,6 +1,5 @@
 package org.iesalandalus.pi_musicaincrescendo.data.repository
 
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.tasks.await
 
@@ -8,12 +7,13 @@ import kotlinx.coroutines.tasks.await
  * Implementación de ProfileRepository usando Firebase Realtime Database.
  */
 class ProfileRepositoryImpl(
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 ) : ProfileRepository {
 
+    /**
+     * Actualiza el nombre de usuario en la ruta: /users/{uid}/displayName
+     */
     override suspend fun updateDisplayName(uid: String, displayName: String) {
-        // Ruta: /users/{uid}/displayName
         database
             .getReference("users")
             .child(uid)
