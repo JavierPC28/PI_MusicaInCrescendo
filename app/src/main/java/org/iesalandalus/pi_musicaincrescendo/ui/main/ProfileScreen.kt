@@ -2,7 +2,9 @@ package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,13 +34,13 @@ fun ProfileScreen() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Imagen de perfil en forma circular con borde
+            // Imagen de perfil con borde
             Card(
-                shape = CircleShape,
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .size(120.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
             ) {
                 androidx.compose.foundation.Image(
                     painter = painterResource(id = R.drawable.perfil_neutro),
@@ -49,11 +51,27 @@ fun ProfileScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Nombre de usuario
-            Text(
-                text = viewModel.displayName,
-                style = MaterialTheme.typography.headlineSmall
-            )
+            // Nombre de usuario con icono de edición
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = viewModel.displayName,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                IconButton(
+                    onClick = { /* Acción de editar nombre */ },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar nombre",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
