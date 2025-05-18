@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel
 
 @Composable
@@ -64,8 +65,7 @@ fun ProfileScreen() {
         when (uiState) {
             is ProfileViewModel.UiState.Success -> showDialog = false
             is ProfileViewModel.UiState.Error -> {
-                // Mostrar error
-                (uiState as ProfileViewModel.UiState.Error).message.let { _ -> }
+                // Para mostrar el error si es necesario
             }
 
             else -> { /* Idle o Loading: no-op */
@@ -89,9 +89,8 @@ fun ProfileScreen() {
                     .clip(RoundedCornerShape(12.dp))
                     .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
             ) {
-                // Imagen estática o según género/director
                 androidx.compose.foundation.Image(
-                    painter = painterResource(id = org.iesalandalus.pi_musicaincrescendo.R.drawable.perfil_neutro),
+                    painter = painterResource(id = R.drawable.perfil_neutro),
                     contentDescription = "Imagen de perfil",
                     modifier = Modifier.fillMaxSize()
                 )
