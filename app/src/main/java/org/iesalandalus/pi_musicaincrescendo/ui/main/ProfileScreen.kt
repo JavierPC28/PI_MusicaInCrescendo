@@ -1,11 +1,10 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -116,7 +115,7 @@ fun ProfileScreen() {
                     .clip(RoundedCornerShape(12.dp))
                     .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
             ) {
-                androidx.compose.foundation.Image(
+                Image(
                     painter = painterResource(id = imageRes),
                     contentDescription = "Imagen de perfil",
                     modifier = Modifier.fillMaxSize()
