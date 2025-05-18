@@ -1,7 +1,9 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -21,6 +23,8 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewM
 fun ProfileScreen() {
     val viewModel: ProfileViewModel = viewModel()
     val displayName by viewModel.displayName.collectAsState()
+    val gender by viewModel.gender.collectAsState()
+    val isDirector by viewModel.isDirector.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
@@ -49,9 +53,7 @@ fun ProfileScreen() {
                             Text("Cancelar")
                         }
                         Spacer(Modifier.width(8.dp))
-                        Button(onClick = {
-                            viewModel.onUpdateName(newName.trim())
-                        }) {
+                        Button(onClick = { viewModel.onUpdateName(newName.trim()) }) {
                             Text("Guardar")
                         }
                     }
@@ -64,24 +66,37 @@ fun ProfileScreen() {
     LaunchedEffect(uiState) {
         when (uiState) {
             is ProfileViewModel.UiState.Success -> showDialog = false
-            is ProfileViewModel.UiState.Error -> {
-                // Para mostrar el error si es necesario
+            is ProfileViewModel.UiState.Error -> { /* Podríamos mostrar Toast si se desea */
             }
 
-            else -> { /* Idle o Loading: no-op */
+            else -> {/* Posible implementación más adelante */
             }
         }
     }
 
+    // Lista de instrumentos
+    val instrumentos = listOf(
+        "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
+        "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
+        "SAXOFÓN SOPRANO", "SAXOFÓN ALTO", "SAXOFÓN TENOR", "SAXOFÓN BARÍTONO",
+        "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
+        "BOMBARDINO", "TUBA"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(16.dp)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            // Imagen de perfil...
+            // Imagen de perfil dinámico según género y rol
+            val imageRes = when {
+                gender == "Mujer" && isDirector -> R.drawable.perfil_directora
+                gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
+                gender == "Hombre" && isDirector -> R.drawable.perfil_director
+                gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
+                else -> R.drawable.perfil_neutro
+            }
             Card(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -90,13 +105,12 @@ fun ProfileScreen() {
                     .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
             ) {
                 androidx.compose.foundation.Image(
-                    painter = painterResource(id = R.drawable.perfil_neutro),
+                    painter = painterResource(id = imageRes),
                     contentDescription = "Imagen de perfil",
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(Modifier.height(8.dp))
-            // Nombre con icono de edición:
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = displayName, style = MaterialTheme.typography.headlineSmall)
                 IconButton(onClick = { newName = displayName; showDialog = true }) {
@@ -109,10 +123,43 @@ fun ProfileScreen() {
                 style = MaterialTheme.typography.bodyLarge
             )
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Grid scrollable de instrumentos
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(4.dp)
+        ) {
+            items(instrumentos) { instrumento ->
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .aspectRatio(1f)
+                        .clickable { /* Podríamos manejar selección */ }
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = instrumento,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
         Text(
             text = "En Banda Municipal de Alcolea desde el ${viewModel.registrationDateFormatted}",
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(vertical = 16.dp)
         )
     }
 }
