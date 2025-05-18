@@ -1,13 +1,9 @@
 package org.iesalandalus.pi_musicaincrescendo.domain.usecase
 
-import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfileRepository
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepository
 
-/**
- * Caso de uso para crear el perfil de un nuevo usuario
- * en la base de datos con nombre, género y rol de director.
- */
 class CreateUserProfileUseCase(
-    private val repo: UserProfileRepository
+    private val repo: UserRepository
 ) {
     suspend operator fun invoke(
         uid: String,
@@ -16,5 +12,13 @@ class CreateUserProfileUseCase(
         isDirector: Boolean
     ) {
         repo.createUserProfile(uid, displayName, gender, isDirector)
+    }
+}
+
+class UpdateDisplayNameUseCase(
+    private val repo: UserRepository
+) {
+    suspend operator fun invoke(uid: String, newName: String) {
+        repo.updateDisplayName(uid, newName)
     }
 }

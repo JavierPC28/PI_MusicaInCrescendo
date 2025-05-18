@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Validator
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
-import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfileRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.CreateUserProfileUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.RegisterUseCase
 
 class RegisterViewModel(
     private val registerUseCase: RegisterUseCase = RegisterUseCase(AuthRepositoryImpl()),
     private val createProfileUseCase: CreateUserProfileUseCase = CreateUserProfileUseCase(
-        UserProfileRepositoryImpl()
+        UserRepositoryImpl()
     )
 ) : ViewModel() {
 

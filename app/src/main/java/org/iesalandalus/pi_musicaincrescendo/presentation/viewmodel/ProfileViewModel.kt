@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.iesalandalus.pi_musicaincrescendo.data.repository.ProfileRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateDisplayNameUseCase
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel.UiState.*
 import java.text.SimpleDateFormat
@@ -16,7 +16,7 @@ import java.util.Locale
 class ProfileViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val updateUseCase: UpdateDisplayNameUseCase = UpdateDisplayNameUseCase(
-        ProfileRepositoryImpl()
+        UserRepositoryImpl()
     )
 ) : ViewModel() {
 
