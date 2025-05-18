@@ -3,7 +3,9 @@ package org.iesalandalus.pi_musicaincrescendo.ui.main
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,7 +38,12 @@ fun ProfileScreen() {
         Dialog(onDismissRequest = { showDialog = false }) {
             Surface(shape = RoundedCornerShape(8.dp), tonalElevation = 8.dp) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Editar nombre de usuario", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Edite su nombre de usuario",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = newName,
@@ -69,8 +77,7 @@ fun ProfileScreen() {
             is ProfileViewModel.UiState.Error -> { /* Podríamos mostrar Toast si se desea */
             }
 
-            else -> {/* Posible implementación más adelante */
-            }
+            else -> {/* Posible implementación futura */ }
         }
     }
 
@@ -86,9 +93,14 @@ fun ProfileScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             // Imagen de perfil dinámico según género y rol
             val imageRes = when {
                 gender == "Mujer" && isDirector -> R.drawable.perfil_directora
@@ -111,16 +123,26 @@ fun ProfileScreen() {
                 )
             }
             Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = displayName, style = MaterialTheme.typography.headlineSmall)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center
+                )
                 IconButton(onClick = { newName = displayName; showDialog = true }) {
                     Icon(imageVector = Icons.Default.Edit, contentDescription = "Editar nombre")
                 }
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                "Seleccione su instrumento principal...",
-                style = MaterialTheme.typography.bodyLarge
+                "Seleccione su instrumento (máx. 3)",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -129,7 +151,7 @@ fun ProfileScreen() {
         // Grid scrollable de instrumentos
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.weight(1f),
             contentPadding = PaddingValues(4.dp)
         ) {
             items(instrumentos) { instrumento ->
@@ -142,12 +164,15 @@ fun ProfileScreen() {
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp)
                     ) {
                         Text(
                             text = instrumento,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(8.dp)
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -159,7 +184,10 @@ fun ProfileScreen() {
         Text(
             text = "En Banda Municipal de Alcolea desde el ${viewModel.registrationDateFormatted}",
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(vertical = 16.dp)
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
         )
     }
 }
