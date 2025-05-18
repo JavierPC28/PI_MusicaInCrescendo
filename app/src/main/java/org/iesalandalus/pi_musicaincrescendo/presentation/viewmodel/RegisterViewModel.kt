@@ -2,17 +2,24 @@ package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Validator
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfileRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.CreateUserProfileUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.RegisterUseCase
 
 class RegisterViewModel(
-    private val registerUseCase: RegisterUseCase = RegisterUseCase(AuthRepositoryImpl())
+    private val registerUseCase: RegisterUseCase = RegisterUseCase(AuthRepositoryImpl()),
+    private val createProfileUseCase: CreateUserProfileUseCase = CreateUserProfileUseCase(
+        UserProfileRepositoryImpl()
+    )
 ) : ViewModel() {
 
+    // --- Estados de formulario ---
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email
 
@@ -43,6 +50,7 @@ class RegisterViewModel(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    // --- Actualizaciones de campos ---
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail
         _isEmailValid.value = Validator.isEmailValid(newEmail)
@@ -67,6 +75,7 @@ class RegisterViewModel(
         _isDirector.value = checked
     }
 
+    // --- Lógica de registro ---
     fun onRegister() {
         if (!_isEmailValid.value || !_isPasswordValid.value || !_isConfirmPasswordValid.value) {
             _errorMessage.value = "Compruebe los datos introducidos"
@@ -74,8 +83,28 @@ class RegisterViewModel(
         }
         viewModelScope.launch {
             try {
-                registerUseCase(email.value.trim(), password.value.trim())
+                // 1) Registramos en Firebase Authentication
+                val result: AuthResult = registerUseCase(
+                    email.value.trim(),
+                    password.value.trim()
+                )
+                val uid = result.user?.uid
+                    ?: throw Exception("No se obtuvo el UID del usuario")
+
+                // 2) Creamos el perfil inicial en Realtime Database
+                val defaultName = email.value
+                    .substringBefore("@")
+                    .replaceFirstChar { it.uppercaseChar() }
+                createProfileUseCase(
+                    uid,
+                    defaultName,
+                    gender.value,
+                    isDirector.value
+                )
+
+                // 3) Señalamos éxito
                 _registrationSuccess.value = true
+
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             }
