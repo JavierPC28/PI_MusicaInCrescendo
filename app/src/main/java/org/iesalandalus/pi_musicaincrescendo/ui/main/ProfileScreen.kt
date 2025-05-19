@@ -75,7 +75,7 @@ fun ProfileScreen() {
     val instrumentos = listOf(
         "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
         "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
-        "SAXOFÓN SOPRANO", "SAXOFÓN ALTO", "SAXOFÓN TENOR", "SAXOFÓN BARÍTONO",
+        "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
         "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
         "BOMBARDINO", "TUBA"
     )
@@ -155,6 +155,7 @@ fun ProfileScreen() {
                 items(instrumentos.size) { i ->
                     val instr = instrumentos[i]
                     val isSelected = selectedInstruments.contains(instr)
+                    val isPrincipal = selectedInstruments.firstOrNull() == instr
 
                     Card(
                         colors = CardDefaults.cardColors(
@@ -165,22 +166,40 @@ fun ProfileScreen() {
                             .aspectRatio(1f)
                             .clickable { vm.onInstrumentToggle(instr) }
                             .border(
-                                width = if (isSelected) 4.dp else 0.dp,
-                                color = if (isSelected) colorOro else Color.Transparent,
+                                width = when {
+                                    isPrincipal -> 4.dp
+                                    isSelected -> 3.dp
+                                    else -> 1.dp
+                                },
+                                color = when {
+                                    isPrincipal -> colorOro
+                                    else -> Color.DarkGray
+                                },
                                 shape = RoundedCornerShape(8.dp)
                             )
                     ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                instr,
-                                style = MaterialTheme.typography.bodySmall,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(4.dp)
-                            )
-                            if (isSelected) {
+                        Box(Modifier.fillMaxSize()) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                Image(
+                                    painter = painterResource(id = getInstrumentDrawable(instr)),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                                Text(
+                                    instr,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(4.dp)
+                                )
+                            }
+                            if (isPrincipal) {
                                 Icon(
                                     painter = painterResource(R.drawable.estrella),
-                                    contentDescription = "Seleccionado",
+                                    contentDescription = "Principal",
                                     tint = colorOro,
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
@@ -201,5 +220,33 @@ fun ProfileScreen() {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+private fun getInstrumentDrawable(instrument: String): Int {
+    return when (instrument) {
+        "DIRECCIÓN MUSICAL" -> R.drawable.batuta
+        "FLAUTÍN" -> R.drawable.flautin
+        "FLAUTA" -> R.drawable.flauta
+        "OBOE" -> R.drawable.oboe
+        "CORNO INGLÉS" -> R.drawable.clarinete
+        "FAGOT" -> R.drawable.fagot
+        "CONTRAFAGOT" -> R.drawable.contrafagot
+        "REQUINTO" -> R.drawable.clarinete
+        "CLARINETE" -> R.drawable.clarinete
+        "CLARINETE BAJO" -> R.drawable.clarinete_bajo
+        "SAXOFÓN SOPRANO" -> R.drawable.saxofon
+        "SAXOFÓN ALTO" -> R.drawable.saxofon
+        "SAXOFÓN TENOR" -> R.drawable.saxofon
+        "SAXOFÓN BARÍTONO" -> R.drawable.saxofon
+        "TROMPA" -> R.drawable.trompa
+        "FLISCORNO" -> R.drawable.fliscorno
+        "TROMPETA" -> R.drawable.trompeta
+        "TROMBÓN" -> R.drawable.trombon
+        "TROMBÓN BAJO" -> R.drawable.trombon
+        "BOMBARDINO" -> R.drawable.tuba
+        "TUBA" -> R.drawable.tuba
+        else -> R.drawable.instrumento_generico
     }
 }
