@@ -44,8 +44,8 @@ class ProfileViewModel(
     private val _isDirector = MutableStateFlow(false)
     val isDirector: StateFlow<Boolean> = _isDirector
 
-    private val _instruments = MutableStateFlow<List<String>>(emptyList())
-    val instruments: StateFlow<List<String>> = _instruments
+    private val _selectedInstruments = MutableStateFlow<List<String>>(emptyList())
+    val selectedInstruments: StateFlow<List<String>> = _selectedInstruments
 
     val registrationDateFormatted: String by lazy {
         auth.currentUser?.metadata?.creationTimestamp?.let {
@@ -63,7 +63,7 @@ class ProfileViewModel(
                     _displayName.value = profile.displayName
                     _gender.value = profile.gender
                     _isDirector.value = profile.isDirector
-                    _instruments.value = profile.instruments
+                    _selectedInstruments.value = profile.instruments
                     _uiState.value = UiState.Idle
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error(e.message ?: "Error al cargar perfil")
@@ -92,14 +92,14 @@ class ProfileViewModel(
         }
     }
 
-    fun toggleInstrument(instrument: String) {
-        val current = _instruments.value.toMutableList()
+    fun onInstrumentToggle(instrument: String) {
+        val current = _selectedInstruments.value.toMutableList()
         if (current.contains(instrument)) {
             current.remove(instrument)
         } else if (current.size < 3) {
             current.add(instrument)
         }
-        _instruments.value = current
+        _selectedInstruments.value = current
 
         auth.currentUser?.uid?.let { uid ->
             viewModelScope.launch {
