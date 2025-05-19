@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,6 +28,7 @@ fun ProfileScreen() {
     val displayName by viewModel.displayName.collectAsState()
     val gender by viewModel.gender.collectAsState()
     val isDirector by viewModel.isDirector.collectAsState()
+    val instruments by viewModel.instruments.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
@@ -76,7 +78,8 @@ fun ProfileScreen() {
             is ProfileViewModel.UiState.Error -> { /* Podríamos mostrar Toast si se desea */
             }
 
-            else -> {/* Posible implementación futura */ }
+            else -> {/* Posible implementación futura */
+            }
         }
     }
 
@@ -137,12 +140,69 @@ fun ProfileScreen() {
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text(
-                "Seleccione su instrumento (máx. 3)",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Seleccione su instrumento (máx. 3)",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(4.dp)
+                    ) {
+                        items(instrumentos) { instrumento ->
+                            val isSelected = instruments.contains(instrumento)
+                            Card(
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .aspectRatio(1f)
+                                    .clickable { viewModel.toggleInstrument(instrumento) }
+                                    .border(
+                                        width = if (isSelected) 4.dp else 0.dp,
+                                        color = if (isSelected) Color.Yellow else Color.Transparent,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp)
+                                ) {
+                                    Text(
+                                        text = instrumento,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    if (isSelected) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.estrella),
+                                            contentDescription = "Seleccionado",
+                                            tint = Color.Yellow,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Spacer(Modifier.height(8.dp))

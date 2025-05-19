@@ -10,6 +10,7 @@ import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetUserProfileUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateDisplayNameUseCase
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateInstrumentsUseCase
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -19,7 +20,8 @@ class ProfileViewModel(
     private val getProfileUseCase: GetUserProfileUseCase = GetUserProfileUseCase(UserRepositoryImpl()),
     private val updateUseCase: UpdateDisplayNameUseCase = UpdateDisplayNameUseCase(
         UserRepositoryImpl()
-    )
+    ),
+    private val updateInstrumentsUseCase: UpdateInstrumentsUseCase = UpdateInstrumentsUseCase(UserRepositoryImpl())
 ) : ViewModel() {
 
     // Estado interno de UI
@@ -42,6 +44,9 @@ class ProfileViewModel(
     private val _isDirector = MutableStateFlow(false)
     val isDirector: StateFlow<Boolean> = _isDirector
 
+    private val _instruments = MutableStateFlow<List<String>>(emptyList())
+    val instruments: StateFlow<List<String>> = _instruments
+
     val registrationDateFormatted: String by lazy {
         auth.currentUser?.metadata?.creationTimestamp?.let {
             SimpleDateFormat("d 'de' MMMM 'de' yyyy", Locale("es", "ES")).format(Date(it))
@@ -58,6 +63,7 @@ class ProfileViewModel(
                     _displayName.value = profile.displayName
                     _gender.value = profile.gender
                     _isDirector.value = profile.isDirector
+                    _instruments.value = profile.instruments
                     _uiState.value = UiState.Idle
                 } catch (e: Exception) {
                     _uiState.value = UiState.Error(e.message ?: "Error al cargar perfil")
@@ -82,6 +88,26 @@ class ProfileViewModel(
                 _uiState.value = UiState.Success(newName)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+    fun toggleInstrument(instrument: String) {
+        val current = _instruments.value.toMutableList()
+        if (current.contains(instrument)) {
+            current.remove(instrument)
+        } else if (current.size < 3) {
+            current.add(instrument)
+        }
+        _instruments.value = current
+
+        auth.currentUser?.uid?.let { uid ->
+            viewModelScope.launch {
+                try {
+                    updateInstrumentsUseCase(uid, current)
+                } catch (_: Exception) {
+                    // Manejo de errores
+                }
             }
         }
     }

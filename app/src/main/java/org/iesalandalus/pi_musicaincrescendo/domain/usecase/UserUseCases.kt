@@ -22,3 +22,11 @@ class UpdateDisplayNameUseCase(
         repo.updateDisplayName(uid, newName)
     }
 }
+
+class UpdateInstrumentsUseCase(
+    private val repo: UserRepository
+) {
+    suspend operator fun invoke(uid: String, instruments: List<String>) {
+        repo.updateInstruments(uid, instruments)
+    }
+}

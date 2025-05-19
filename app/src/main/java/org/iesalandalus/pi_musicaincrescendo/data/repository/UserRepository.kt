@@ -7,7 +7,8 @@ import kotlinx.coroutines.tasks.await
 data class UserProfile(
     val displayName: String = "",
     val gender: String = "",
-    val isDirector: Boolean = false
+    val isDirector: Boolean = false,
+    val instruments: List<String> = emptyList()
 )
 
 interface UserRepository {
@@ -15,8 +16,11 @@ interface UserRepository {
         uid: String,
         displayName: String,
         gender: String,
-        isDirector: Boolean
+        isDirector: Boolean,
+        instruments: List<String> = emptyList()
     )
+
+    suspend fun updateInstruments(uid: String, instruments: List<String>)
 
     suspend fun updateDisplayName(uid: String, displayName: String)
 
@@ -32,15 +36,25 @@ class UserRepositoryImpl(
         uid: String,
         displayName: String,
         gender: String,
-        isDirector: Boolean
+        isDirector: Boolean,
+        instruments: List<String>
     ) {
         val userRef = database.getReference("users").child(uid)
         val profileData = mapOf(
             "displayName" to displayName,
             "gender" to gender,
-            "isDirector" to isDirector
+            "isDirector" to isDirector,
+            "instruments" to instruments
         )
         userRef.setValue(profileData).await()
+    }
+
+    override suspend fun updateInstruments(uid: String, instruments: List<String>) {
+        database.getReference("users")
+            .child(uid)
+            .child("instruments")
+            .setValue(instruments)
+            .await()
     }
 
     override suspend fun updateDisplayName(uid: String, displayName: String) {
@@ -56,6 +70,7 @@ class UserRepositoryImpl(
         val displayName = snapshot.child("displayName").getValue(String::class.java) ?: ""
         val gender = snapshot.child("gender").getValue(String::class.java) ?: ""
         val isDirector = snapshot.child("isDirector").getValue(Boolean::class.java) == true
-        return UserProfile(displayName, gender, isDirector)
+        val instruments = snapshot.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
+        return UserProfile(displayName, gender, isDirector, instruments)
     }
 }
