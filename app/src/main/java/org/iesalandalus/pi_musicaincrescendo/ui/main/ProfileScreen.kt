@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -156,6 +157,16 @@ fun ProfileScreen() {
                     val instr = instrumentos[i]
                     val isSelected = selectedInstruments.contains(instr)
                     val isPrincipal = selectedInstruments.firstOrNull() == instr
+                    val isDirection = instr == "DIRECCIÓN MUSICAL"
+                    val disabled = isDirection && !isDirector
+
+                    // Determinar borde
+                    val borderStroke = when {
+                        disabled -> BorderStroke(1.dp, Color.LightGray)
+                        isPrincipal -> BorderStroke(4.dp, colorOro)
+                        isSelected -> BorderStroke(3.dp, Color.DarkGray)
+                        else -> BorderStroke(1.dp, Color.DarkGray)
+                    }
 
                     Card(
                         colors = CardDefaults.cardColors(
@@ -164,19 +175,9 @@ fun ProfileScreen() {
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .aspectRatio(1f)
-                            .clickable { vm.onInstrumentToggle(instr) }
-                            .border(
-                                width = when {
-                                    isPrincipal -> 4.dp
-                                    isSelected -> 3.dp
-                                    else -> 1.dp
-                                },
-                                color = when {
-                                    isPrincipal -> colorOro
-                                    else -> Color.DarkGray
-                                },
-                                shape = RoundedCornerShape(8.dp)
-                            )
+                            .alpha(if (disabled) 0.5f else 1f)
+                            .clickable(enabled = !disabled) { vm.onInstrumentToggle(instr) }
+                            .border(borderStroke, RoundedCornerShape(8.dp))
                     ) {
                         Box(Modifier.fillMaxSize()) {
                             Column(
