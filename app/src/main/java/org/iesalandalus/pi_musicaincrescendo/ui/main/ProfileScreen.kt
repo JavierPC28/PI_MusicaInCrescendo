@@ -236,12 +236,12 @@ private fun getInstrumentDrawable(instrument: String): Int {
         "REQUINTO" -> R.drawable.clarinete
         "CLARINETE" -> R.drawable.clarinete
         "CLARINETE BAJO" -> R.drawable.clarinete_bajo
-        "SAXOFÓN SOPRANO" -> R.drawable.saxofon
-        "SAXOFÓN ALTO" -> R.drawable.saxofon
-        "SAXOFÓN TENOR" -> R.drawable.saxofon
-        "SAXOFÓN BARÍTONO" -> R.drawable.saxofon
+        "SAXO SOPRANO" -> R.drawable.saxofon
+        "SAXO ALTO" -> R.drawable.saxofon
+        "SAXO TENOR" -> R.drawable.saxofon
+        "SAXO BARÍTONO" -> R.drawable.saxofon
         "TROMPA" -> R.drawable.trompa
-        "FLISCORNO" -> R.drawable.fliscorno
+        "FLISCORNO" -> R.drawable.trompeta
         "TROMPETA" -> R.drawable.trompeta
         "TROMBÓN" -> R.drawable.trombon
         "TROMBÓN BAJO" -> R.drawable.trombon
