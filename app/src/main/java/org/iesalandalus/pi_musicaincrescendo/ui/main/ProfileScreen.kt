@@ -20,29 +20,30 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel
+import org.iesalandalus.pi_musicaincrescendo.ui.theme.colorOro
 
 @Composable
 fun ProfileScreen() {
-    val viewModel: ProfileViewModel = viewModel()
-    val displayName by viewModel.displayName.collectAsState()
-    val gender by viewModel.gender.collectAsState()
-    val isDirector by viewModel.isDirector.collectAsState()
-    val selectedInstruments by viewModel.selectedInstruments.collectAsState()
-    val uiState by viewModel.uiState.collectAsState()
+    val vm: ProfileViewModel = viewModel()
+    val displayName by vm.displayName.collectAsState()
+    val gender by vm.gender.collectAsState()
+    val isDirector by vm.isDirector.collectAsState()
+    val selectedInstruments by vm.selectedInstruments.collectAsState()
+    val uiState by vm.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf(displayName) }
 
-    // Diálogo de edición de nombre
+    // Diálogo edición nombre
     if (showDialog) {
         Dialog(onDismissRequest = { showDialog = false }) {
             Surface(shape = RoundedCornerShape(8.dp), tonalElevation = 8.dp) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(Modifier.padding(16.dp)) {
                     Text(
                         "Edite su nombre de usuario",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
@@ -53,33 +54,24 @@ fun ProfileScreen() {
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(16.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        TextButton(onClick = { showDialog = false }) {
-                            Text("Cancelar")
-                        }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
                         Spacer(Modifier.width(8.dp))
-                        Button(onClick = { viewModel.onUpdateName(newName.trim()) }) {
-                            Text("Guardar")
-                        }
+                        Button(onClick = {
+                            vm.onUpdateName(newName.trim())
+                        }) { Text("Guardar") }
                     }
                 }
             }
         }
     }
 
-    // Cerrar diálogo tras éxito o manejar error
+    // Cerramos diálogo tras éxito
     LaunchedEffect(uiState) {
-        when (uiState) {
-            is ProfileViewModel.UiState.Success -> showDialog = false
-            is ProfileViewModel.UiState.Error -> {}
-            else -> {}
-        }
+        if (uiState is ProfileViewModel.UiState.Success) showDialog = false
     }
 
-    // Lista completa de instrumentos
+    // Lista de instrumentos
     val instrumentos = listOf(
         "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
         "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
@@ -88,19 +80,13 @@ fun ProfileScreen() {
         "BOMBARDINO", "TUBA"
     )
 
-    Canvas(modifier = Modifier.fillMaxSize()) {}
-
     Column(
-        modifier = Modifier
+        Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Sección superior: imagen y nombre
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Imagen de perfil según género y rol
+        // Imagen y nombre
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             val imageRes = when {
                 gender == "Mujer" && isDirector -> R.drawable.perfil_directora
                 gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
@@ -115,30 +101,23 @@ fun ProfileScreen() {
                     .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
             ) {
                 Image(
-                    painter = painterResource(id = imageRes),
-                    contentDescription = "Imagen de perfil",
+                    painter = painterResource(imageRes),
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(Modifier.height(8.dp))
             Row(
+                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = displayName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center
-                )
+                Text(displayName, style = MaterialTheme.typography.headlineSmall)
                 IconButton(onClick = {
                     newName = displayName
                     showDialog = true
                 }) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Editar nombre"
-                    )
+                    Icon(Icons.Default.Edit, contentDescription = "Editar nombre")
                 }
             }
         }
@@ -146,76 +125,67 @@ fun ProfileScreen() {
         Spacer(Modifier.height(16.dp))
 
         Text(
-            "Seleccione su instrumento (máx. 3)",
+            "Seleccione su instrumento (máx. ${if (isDirector) 2 else 3})",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         )
-
         Text(
             "Instrumento principal: ⭐",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         )
-
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
         Box(
-            modifier = Modifier
+            Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .background(Color.LightGray)
                 .padding(8.dp)
         ) {
-            Column {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(instrumentos.size) { index ->
-                        val instrumento = instrumentos[index]
-                        val isSelected = selectedInstruments.contains(instrumento)
-                        val oro = Color(0xFFFFD700)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(instrumentos.size) { i ->
+                    val instr = instrumentos[i]
+                    val isSelected = selectedInstruments.contains(instr)
 
-                        Card(
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .clickable { viewModel.onInstrumentToggle(instrumento) }
-                                .border(
-                                    width = if (isSelected) 4.dp else 0.dp,
-                                    color = if (isSelected) oro else Color.Transparent,
-                                    shape = RoundedCornerShape(8.dp)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable { vm.onInstrumentToggle(instr) }
+                            .border(
+                                width = if (isSelected) 4.dp else 0.dp,
+                                color = if (isSelected) colorOro else Color.Transparent,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                instr,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                            if (isSelected) {
+                                Icon(
+                                    painter = painterResource(R.drawable.estrella),
+                                    contentDescription = "Seleccionado",
+                                    tint = colorOro,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
                                 )
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Text(
-                                    text = instrumento,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(4.dp)
-                                )
-                                if (isSelected) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.estrella),
-                                        contentDescription = "Seleccionado",
-                                        tint = oro, // estrella dorada
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .padding(4.dp)
-                                    )
-                                }
                             }
                         }
                     }
@@ -223,16 +193,13 @@ fun ProfileScreen() {
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
 
-        // Fecha de registro
         Text(
-            text = "En Banda Municipal de Alcolea desde el ${viewModel.registrationDateFormatted}",
+            "En Banda Municipal de Alcolea desde el ${vm.registrationDateFormatted}",
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

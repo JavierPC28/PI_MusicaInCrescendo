@@ -18,18 +18,20 @@ import java.util.Locale
 class ProfileViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val getProfileUseCase: GetUserProfileUseCase = GetUserProfileUseCase(UserRepositoryImpl()),
-    private val updateUseCase: UpdateDisplayNameUseCase = UpdateDisplayNameUseCase(
+    private val updateNameUseCase: UpdateDisplayNameUseCase = UpdateDisplayNameUseCase(
         UserRepositoryImpl()
     ),
-    private val updateInstrumentsUseCase: UpdateInstrumentsUseCase = UpdateInstrumentsUseCase(UserRepositoryImpl())
+    private val updateInstrumentsUseCase: UpdateInstrumentsUseCase = UpdateInstrumentsUseCase(
+        UserRepositoryImpl()
+    )
 ) : ViewModel() {
 
-    // Estado interno de UI
+    // --- Estados de UI ---
     sealed class UiState {
         object Idle : UiState()
         object Loading : UiState()
-        data class Success(val name: String) : UiState()
-        data class Error(val message: String) : UiState()
+        data class Success(val message: String) : UiState()
+        data class Error(val error: String) : UiState()
     }
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
@@ -47,66 +49,81 @@ class ProfileViewModel(
     private val _selectedInstruments = MutableStateFlow<List<String>>(emptyList())
     val selectedInstruments: StateFlow<List<String>> = _selectedInstruments
 
+    // Fecha de registro formateada
     val registrationDateFormatted: String by lazy {
-        auth.currentUser?.metadata?.creationTimestamp?.let {
-            SimpleDateFormat("d 'de' MMMM 'de' yyyy", Locale("es", "ES")).format(Date(it))
-        } ?: ""
+        auth.currentUser?.metadata?.creationTimestamp
+            ?.let { ts ->
+                SimpleDateFormat("d 'de' MMMM 'de' yyyy", Locale("es", "ES")).format(
+                    Date(
+                        ts
+                    )
+                )
+            }
+            ?: ""
     }
 
     init {
-        // Cargamos perfil al iniciar
+        // Carga inicial de perfil
         auth.currentUser?.uid?.let { uid ->
             viewModelScope.launch {
+                _uiState.value = UiState.Loading
                 try {
-                    _uiState.value = UiState.Loading
                     val profile: UserProfile = getProfileUseCase(uid)
                     _displayName.value = profile.displayName
                     _gender.value = profile.gender
                     _isDirector.value = profile.isDirector
-                    _selectedInstruments.value = profile.instruments
+
+                    // Si es director, forzamos "DIRECCIÓN MUSICAL" siempre seleccionado
+                    val inicial = mutableListOf<String>().apply {
+                        if (profile.isDirector) add("DIRECCIÓN MUSICAL")
+                        addAll(profile.instruments.filter { it != "DIRECCIÓN MUSICAL" })
+                    }
+                    _selectedInstruments.value = inicial
+
                     _uiState.value = UiState.Idle
                 } catch (e: Exception) {
-                    _uiState.value = UiState.Error(e.message ?: "Error al cargar perfil")
+                    _uiState.value = UiState.Error("Error al cargar perfil")
                 }
             }
         }
     }
 
-    /**
-     * Lanza el flujo de actualización de nombre.
-     */
     fun onUpdateName(newName: String) {
-        val user = auth.currentUser ?: run {
-            _uiState.value = UiState.Error("Usuario no autenticado")
-            return
-        }
-        _uiState.value = UiState.Loading
+        val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
             try {
-                updateUseCase(user.uid, newName)
+                updateNameUseCase(uid, newName)
                 _displayName.value = newName
-                _uiState.value = UiState.Success(newName)
+                _uiState.value = UiState.Success("Nombre actualizado")
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.message ?: "Error desconocido")
+                _uiState.value = UiState.Error("No se pudo actualizar nombre")
             }
         }
     }
 
     fun onInstrumentToggle(instrument: String) {
+        val isDir = _isDirector.value
+        // No tocamos "DIRECCIÓN MUSICAL" para director
+        if (isDir && instrument == "DIRECCIÓN MUSICAL") return
+
         val current = _selectedInstruments.value.toMutableList()
         if (current.contains(instrument)) {
             current.remove(instrument)
-        } else if (current.size < 3) {
-            current.add(instrument)
+        } else {
+            // Límite: 3 totales
+            if (current.size < 3) {
+                current.add(instrument)
+            }
         }
         _selectedInstruments.value = current
 
+        // Persistencia en Firebase
         auth.currentUser?.uid?.let { uid ->
             viewModelScope.launch {
                 try {
                     updateInstrumentsUseCase(uid, current)
-                } catch (_: Exception) {
-                    // Manejo de errores
+                } catch (_: Exception) { /* Manejo de errores */
                 }
             }
         }
