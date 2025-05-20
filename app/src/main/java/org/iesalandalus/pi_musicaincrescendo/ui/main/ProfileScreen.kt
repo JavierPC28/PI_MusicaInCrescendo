@@ -144,9 +144,13 @@ fun ProfileScreen() {
                 .fillMaxWidth()
                 .weight(1f)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.LightGray)
+                .background(Color.LightGray.copy(alpha = 0.6f))
                 .padding(8.dp)
         ) {
+            val borderColorDefault = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            val borderColorSelected = MaterialTheme.colorScheme.primary
+            val borderColorPrincipal = colorOro
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -160,17 +164,17 @@ fun ProfileScreen() {
                     val isDirection = instr == "DIRECCIÓN MUSICAL"
                     val disabled = isDirection && !isDirector
 
-                    // Determinar borde
+                    // Bordes adaptados a tema claro/oscuro
                     val borderStroke = when {
-                        disabled -> BorderStroke(1.dp, Color.LightGray)
-                        isPrincipal -> BorderStroke(4.dp, colorOro)
-                        isSelected -> BorderStroke(3.dp, Color.DarkGray)
-                        else -> BorderStroke(1.dp, Color.DarkGray)
+                        disabled -> BorderStroke(1.dp, borderColorDefault.copy(alpha = 0.3f))
+                        isPrincipal -> BorderStroke(4.dp, borderColorPrincipal)
+                        isSelected -> BorderStroke(3.dp, borderColorSelected)
+                        else -> BorderStroke(1.dp, borderColorDefault)
                     }
 
                     Card(
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.background
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                         ),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
