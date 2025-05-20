@@ -26,6 +26,11 @@ class ProfileViewModel(
     )
 ) : ViewModel() {
 
+    companion object {
+        // Clave para instrumento de dirección musical
+        const val DIRECCION_MUSICAL = "DIRECCIÓN MUSICAL"
+    }
+
     // --- Estados de UI ---
     sealed class UiState {
         object Idle : UiState()
@@ -73,15 +78,15 @@ class ProfileViewModel(
                     _gender.value = profile.gender
                     _isDirector.value = profile.isDirector
 
-                    // Si es director, forzamos "DIRECCIÓN MUSICAL" siempre seleccionado
+                    // Si es director, forzamos dirección musical siempre primero
                     val inicial = mutableListOf<String>().apply {
-                        if (profile.isDirector) add("DIRECCIÓN MUSICAL")
-                        addAll(profile.instruments.filter { it != "DIRECCIÓN MUSICAL" })
+                        if (profile.isDirector) add(DIRECCION_MUSICAL)
+                        addAll(profile.instruments.filter { it != DIRECCION_MUSICAL })
                     }
                     _selectedInstruments.value = inicial
 
                     _uiState.value = UiState.Idle
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     _uiState.value = UiState.Error("Error al cargar perfil")
                 }
             }
@@ -96,7 +101,7 @@ class ProfileViewModel(
                 updateNameUseCase(uid, newName)
                 _displayName.value = newName
                 _uiState.value = UiState.Success("Nombre actualizado")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = UiState.Error("No se pudo actualizar nombre")
             }
         }
@@ -105,16 +110,14 @@ class ProfileViewModel(
     fun onInstrumentToggle(instrument: String) {
         val isDir = _isDirector.value
         // No tocamos "DIRECCIÓN MUSICAL" para director
-        if (isDir && instrument == "DIRECCIÓN MUSICAL") return
+        if (isDir && instrument == DIRECCION_MUSICAL) return
 
         val current = _selectedInstruments.value.toMutableList()
         if (current.contains(instrument)) {
             current.remove(instrument)
         } else {
             // Límite: 3 totales
-            if (current.size < 3) {
-                current.add(instrument)
-            }
+            if (current.size < 3) current.add(instrument)
         }
         _selectedInstruments.value = current
 

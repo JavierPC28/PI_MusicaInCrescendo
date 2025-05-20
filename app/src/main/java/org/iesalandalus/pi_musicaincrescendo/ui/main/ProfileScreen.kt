@@ -23,6 +23,8 @@ import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.colorOro
 
+private const val DIRECTION_KEY = ProfileViewModel.DIRECCION_MUSICAL
+
 @Composable
 fun ProfileScreen() {
     val vm: ProfileViewModel = viewModel()
@@ -33,191 +35,40 @@ fun ProfileScreen() {
     val uiState by vm.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
-    var newName by remember { mutableStateOf(displayName) }
 
-    // Diálogo edición nombre
-    if (showDialog) {
-        Dialog(onDismissRequest = { showDialog = false }) {
-            Surface(shape = RoundedCornerShape(8.dp), tonalElevation = 8.dp) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(
-                        "Edite su nombre de usuario",
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = newName,
-                        onValueChange = { newName = it },
-                        label = { Text("Nombre") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(Modifier.height(16.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
-                        Spacer(Modifier.width(8.dp))
-                        Button(onClick = {
-                            vm.onUpdateName(newName.trim())
-                        }) { Text("Guardar") }
-                    }
-                }
-            }
-        }
-    }
-
-    // Cerramos diálogo tras éxito
     LaunchedEffect(uiState) {
         if (uiState is ProfileViewModel.UiState.Success) showDialog = false
     }
 
-    // Lista de instrumentos
-    val instrumentos = listOf(
-        "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
-        "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
-        "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
-        "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
-        "BOMBARDINO", "TUBA"
-    )
-
     Column(
         Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Imagen y nombre
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            val imageRes = when {
-                gender == "Mujer" && isDirector -> R.drawable.perfil_directora
-                gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
-                gender == "Hombre" && isDirector -> R.drawable.perfil_director
-                gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
-                else -> R.drawable.perfil_neutro
-            }
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier
-                    .size(120.dp)
-                    .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
-            ) {
-                Image(
-                    painter = painterResource(imageRes),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(displayName, style = MaterialTheme.typography.headlineSmall)
-                IconButton(onClick = {
-                    newName = displayName
-                    showDialog = true
-                }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar nombre")
-                }
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            "Seleccione su instrumento (máx. ${if (isDirector) 2 else 3})",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+        ProfileHeader(
+            displayName = displayName,
+            gender = gender,
+            isDirector = isDirector,
+            onEditName = { showDialog = true }
         )
-        Text(
-            "Instrumento principal: ⭐",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(12.dp))
+
+        InstrumentInstructions(isDirector = isDirector)
 
         Box(
             Modifier
-                .fillMaxWidth()
                 .weight(1f)
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color.LightGray.copy(alpha = 0.6f))
                 .padding(8.dp)
         ) {
-            val borderColorDefault = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            val borderColorSelected = MaterialTheme.colorScheme.primary
-            val borderColorPrincipal = colorOro
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(instrumentos.size) { i ->
-                    val instr = instrumentos[i]
-                    val isSelected = selectedInstruments.contains(instr)
-                    val isPrincipal = selectedInstruments.firstOrNull() == instr
-                    val isDirection = instr == "DIRECCIÓN MUSICAL"
-                    val disabled = isDirection && !isDirector
-
-                    // Bordes adaptados a tema claro/oscuro
-                    val borderStroke = when {
-                        disabled -> BorderStroke(1.dp, borderColorDefault.copy(alpha = 0.3f))
-                        isPrincipal -> BorderStroke(4.dp, borderColorPrincipal)
-                        isSelected -> BorderStroke(3.dp, borderColorSelected)
-                        else -> BorderStroke(1.dp, borderColorDefault)
-                    }
-
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .alpha(if (disabled) 0.5f else 1f)
-                            .clickable(enabled = !disabled) { vm.onInstrumentToggle(instr) }
-                            .border(borderStroke, RoundedCornerShape(8.dp))
-                    ) {
-                        Box(Modifier.fillMaxSize()) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Image(
-                                    painter = painterResource(id = getInstrumentDrawable(instr)),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Text(
-                                    instr,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.padding(4.dp)
-                                )
-                            }
-                            if (isPrincipal) {
-                                Icon(
-                                    painter = painterResource(R.drawable.estrella),
-                                    contentDescription = "Principal",
-                                    tint = colorOro,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(4.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+            InstrumentGrid(
+                selected = selectedInstruments,
+                isDirector = isDirector,
+                onToggle = vm::onInstrumentToggle
+            )
         }
-
-        Spacer(Modifier.height(12.dp))
 
         Text(
             "En Banda Municipal de Alcolea desde el ${vm.registrationDateFormatted}",
@@ -225,33 +76,226 @@ fun ProfileScreen() {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
+
+        if (showDialog) {
+            EditNameDialog(
+                currentName = displayName,
+                onConfirm = { vm.onUpdateName(it) },
+                onDismiss = { showDialog = false }
+            )
+        }
+    }
+}
+
+private val instrumentosList = listOf(
+    DIRECTION_KEY, "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
+    "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
+    "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
+    "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
+    "BOMBARDINO", "TUBA"
+)
+
+@Composable
+private fun ProfileHeader(
+    displayName: String,
+    gender: String,
+    isDirector: Boolean,
+    onEditName: () -> Unit
+) {
+    Column(
+        Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        val imageRes = when {
+            gender == "Mujer" && isDirector -> R.drawable.perfil_directora
+            gender == "Mujer" -> R.drawable.perfil_alumna
+            isDirector -> R.drawable.perfil_director
+            else -> R.drawable.perfil_alumno
+        }
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .size(120.dp)
+                .border(
+                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                    RoundedCornerShape(12.dp)
+                )
+        ) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(displayName, style = MaterialTheme.typography.headlineSmall)
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Editar nombre",
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .clickable { onEditName() }
+            )
+        }
     }
 }
 
 @Composable
-private fun getInstrumentDrawable(instrument: String): Int {
-    return when (instrument) {
-        "DIRECCIÓN MUSICAL" -> R.drawable.batuta
-        "FLAUTÍN" -> R.drawable.flautin
-        "FLAUTA" -> R.drawable.flauta
-        "OBOE" -> R.drawable.oboe
-        "CORNO INGLÉS" -> R.drawable.clarinete
-        "FAGOT" -> R.drawable.fagot
-        "CONTRAFAGOT" -> R.drawable.contrafagot
-        "REQUINTO" -> R.drawable.clarinete
-        "CLARINETE" -> R.drawable.clarinete
-        "CLARINETE BAJO" -> R.drawable.clarinete_bajo
-        "SAXO SOPRANO" -> R.drawable.saxofon
-        "SAXO ALTO" -> R.drawable.saxofon
-        "SAXO TENOR" -> R.drawable.saxofon
-        "SAXO BARÍTONO" -> R.drawable.saxofon
-        "TROMPA" -> R.drawable.trompa
-        "FLISCORNO" -> R.drawable.trompeta
-        "TROMPETA" -> R.drawable.trompeta
-        "TROMBÓN" -> R.drawable.trombon
-        "TROMBÓN BAJO" -> R.drawable.trombon
-        "BOMBARDINO" -> R.drawable.tuba
-        "TUBA" -> R.drawable.tuba
-        else -> R.drawable.instrumento_generico
+private fun InstrumentInstructions(isDirector: Boolean) {
+    Column(Modifier.fillMaxWidth()) {
+        Text(
+            "Seleccione su instrumento (máx. ${if (isDirector) 2 else 3})",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Instrumento principal: ⭐",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(16.dp))
     }
+}
+
+@Composable
+private fun InstrumentGrid(
+    selected: List<String>,
+    isDirector: Boolean,
+    onToggle: (String) -> Unit
+) {
+    Box(
+        Modifier.fillMaxWidth()
+    ) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(instrumentosList.size) { i ->
+                val instr = instrumentosList[i]
+                val isSelected = selected.contains(instr)
+                val isPrincipal = selected.firstOrNull() == instr
+                val disabled = instr == DIRECTION_KEY && !isDirector
+
+                val stroke = when {
+                    disabled -> BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    )
+
+                    isPrincipal -> BorderStroke(4.dp, colorOro)
+                    isSelected -> BorderStroke(3.dp, MaterialTheme.colorScheme.primary)
+                    else -> BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .alpha(if (disabled) 0.5f else 1f)
+                        .clickable(enabled = !disabled) { onToggle(instr) }
+                        .border(stroke, RoundedCornerShape(8.dp))
+                ) {
+                    Box(Modifier.fillMaxSize()) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Image(
+                                painter = painterResource(getInstrumentDrawable(instr)),
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Text(
+                                instr,
+                                style = MaterialTheme.typography.bodySmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        }
+                        if (isPrincipal) {
+                            Icon(
+                                painter = painterResource(R.drawable.estrella),
+                                contentDescription = "Principal",
+                                tint = colorOro,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditNameDialog(
+    currentName: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var tempName by remember { mutableStateOf(currentName) }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = RoundedCornerShape(8.dp), tonalElevation = 8.dp) {
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    "Edite su nombre de usuario",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = tempName,
+                    onValueChange = { tempName = it },
+                    label = { Text("Nombre") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Cancelar") }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { onConfirm(tempName.trim()) }) { Text("Guardar") }
+                }
+            }
+        }
+    }
+}
+
+private fun getInstrumentDrawable(instrument: String): Int = when (instrument) {
+    DIRECTION_KEY -> R.drawable.batuta
+    "FLAUTÍN" -> R.drawable.flautin
+    "FLAUTA" -> R.drawable.flauta
+    "OBOE" -> R.drawable.oboe
+    "CORNO INGLÉS" -> R.drawable.clarinete
+    "FAGOT" -> R.drawable.fagot
+    "CONTRAFAGOT" -> R.drawable.contrafagot
+    "REQUINTO", "CLARINETE" -> R.drawable.clarinete
+    "CLARINETE BAJO" -> R.drawable.clarinete_bajo
+    "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO" -> R.drawable.saxofon
+    "TROMPA" -> R.drawable.trompa
+    "FLISCORNO", "TROMPETA" -> R.drawable.trompeta
+    "TROMBÓN", "TROMBÓN BAJO" -> R.drawable.trombon
+    "BOMBARDINO", "TUBA" -> R.drawable.tuba
+    else -> R.drawable.instrumento_generico
 }
