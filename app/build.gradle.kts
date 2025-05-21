@@ -42,6 +42,7 @@ android {
 
 dependencies {
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.maps.compose)
 
     // Core y Activity KTX
     implementation(libs.androidx.core.ktx)
