@@ -4,13 +4,14 @@ import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Card
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -36,18 +37,19 @@ fun HomeScreen() {
             Image(
                 painter = painterResource(id = R.drawable.banda_alcolea),
                 contentDescription = "Icono Banda de Alcolea",
-                modifier = Modifier
-                    .size(64.dp)
+                modifier = Modifier.size(64.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
                     text = "BANDA DE MÚSICA",
-                    fontSize = 18.sp
+                    fontSize = 14.sp,
+                    color = Color(0xFFFFA500)
                 )
                 Text(
                     text = "Banda Municipal de Música de Alcolea",
-                    fontSize = 14.sp
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Alcolea, Almería, España",
@@ -61,15 +63,45 @@ fun HomeScreen() {
         // Sección de local de ensayo
         Text(
             text = "Local de ensayo",
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(200.dp)
         ) {
-            // Card vacío por el momento
+            Column(modifier = Modifier.padding(12.dp)) {
+                // Card interno vacío por el momento
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                ) {}
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Centro Cultural Zaharagüi, Calle Ermita, Alcolea, España",
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "Cómo llegar",
+                        fontSize = 14.sp,
+                        modifier = Modifier.clickable {
+                            // Intent a mapa para llegar
+                            val uri =
+                                "geo:0,0?q=Centro Cultural Zaharagüi, Calle Ermita, Alcolea, España".toUri()
+                            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                        },
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -80,12 +112,12 @@ fun HomeScreen() {
             modifier = Modifier.fillMaxWidth()
         ) {
             // Facebook
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
-                        "https://m.facebook.com/BandaAlcolea".toUri()
+                        "https://www.facebook.com/BandaAlcolea".toUri()
                     )
                     context.startActivity(intent)
                 }
@@ -95,14 +127,15 @@ fun HomeScreen() {
                     contentDescription = "Facebook",
                     modifier = Modifier.size(32.dp)
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Facebook",
                     fontSize = 12.sp
                 )
             }
             // Instagram
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
@@ -116,14 +149,15 @@ fun HomeScreen() {
                     contentDescription = "Instagram",
                     modifier = Modifier.size(32.dp)
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Instagram",
                     fontSize = 12.sp
                 )
             }
             // YouTube
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
@@ -137,6 +171,7 @@ fun HomeScreen() {
                     contentDescription = "YouTube",
                     modifier = Modifier.size(32.dp)
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "YouTube",
                     fontSize = 12.sp
