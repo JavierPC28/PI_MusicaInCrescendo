@@ -27,7 +27,7 @@ import org.iesalandalus.pi_musicaincrescendo.R
 fun HomeScreen() {
     val context = LocalContext.current
     // Tamaño común para los iconos de redes sociales
-    val socialIconSize = 24.dp
+    val socialIconSize = 20.dp
 
     Column(
         modifier = Modifier
@@ -142,7 +142,7 @@ fun HomeScreen() {
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Facebook",
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
             }
             // Instagram
@@ -159,12 +159,12 @@ fun HomeScreen() {
                 Image(
                     painter = painterResource(id = R.drawable.instagram),
                     contentDescription = "Instagram",
-                    modifier = Modifier.size(socialIconSize)
+                    modifier = Modifier.size(socialIconSize + 3.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Instagram",
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
             }
             // YouTube
@@ -181,12 +181,12 @@ fun HomeScreen() {
                 Image(
                     painter = painterResource(id = R.drawable.youtube),
                     contentDescription = "YouTube",
-                    modifier = Modifier.size(socialIconSize)
+                    modifier = Modifier.size(socialIconSize + 4.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "YouTube",
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
             }
         }
