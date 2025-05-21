@@ -27,7 +27,7 @@ import org.iesalandalus.pi_musicaincrescendo.R
 fun HomeScreen() {
     val context = LocalContext.current
     // Tamaño común para los iconos de redes sociales
-    val socialIconSize = 32.dp
+    val socialIconSize = 24.dp
 
     Column(
         modifier = Modifier
@@ -45,13 +45,13 @@ fun HomeScreen() {
                 contentDescription = "Icono Banda de Alcolea",
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)) // Bordes redondeados
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
                     text = "BANDA DE MÚSICA",
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     color = Color(0xFFFFA500)
                 )
                 Text(
@@ -90,14 +90,16 @@ fun HomeScreen() {
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "Centro Cultural Zaharagüi, Calle Ermita, Alcolea, España",
                         fontSize = 14.sp,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis // Para ajustar a dos líneas
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 12.dp)
                     )
                     Text(
                         text = "Cómo llegar",
