@@ -70,6 +70,8 @@ fun ProfileScreen() {
             )
         }
 
+        Spacer(Modifier.height(12.dp))
+
         Text(
             "En Banda Municipal de Alcolea desde el ${vm.registrationDateFormatted}",
             style = MaterialTheme.typography.bodySmall,
@@ -92,7 +94,8 @@ private val instrumentosList = listOf(
     "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
     "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
     "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
-    "BOMBARDINO", "TUBA"
+    "BOMBARDINO", "TUBA", "VIOLONCHELO", "CONTRABAJO", "CAJA", "PERCUSIÓN",
+    "BOMBO", "PLATOS", "TIMBALES", "LÁMINAS", "BATERÍA"
 )
 
 @Composable
@@ -142,6 +145,7 @@ private fun ProfileHeader(
                     .clickable { onEditName() }
             )
         }
+        Spacer(Modifier.height(8.dp))
     }
 }
 
@@ -297,5 +301,13 @@ private fun getInstrumentDrawable(instrument: String): Int = when (instrument) {
     "FLISCORNO", "TROMPETA" -> R.drawable.trompeta
     "TROMBÓN", "TROMBÓN BAJO" -> R.drawable.trombon
     "BOMBARDINO", "TUBA" -> R.drawable.tuba
+    "VIOLONCHELO" -> R.drawable.violonchelo
+    "CONTRABAJO" -> R.drawable.contrabajo
+    "CAJA", "PERCUSIÓN" -> R.drawable.caja
+    "BOMBO" -> R.drawable.bombo
+    "PLATOS" -> R.drawable.platos
+    "TIMBALES" -> R.drawable.timbales
+    "LÁMINAS" -> R.drawable.laminas
+    "BATERÍA" -> R.drawable.bateria
     else -> R.drawable.instrumento_generico
 }
