@@ -25,7 +25,17 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
+import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getInstrumentDrawable
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
+
+private val instrumentosList = listOf(
+    "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
+    "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
+    "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
+    "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
+    "BOMBARDINO", "TUBA", "VIOLONCHELO", "CONTRABAJO", "CAJA", "PERCUSIÓN",
+    "BOMBO", "PLATOS", "TIMBALES", "LÁMINAS", "BATERÍA"
+)
 
 @Composable
 fun HomeScreen() {
@@ -34,6 +44,13 @@ fun HomeScreen() {
     val homeViewModel: HomeViewModel = viewModel()
     val miembros by homeViewModel.userCount.collectAsState()
     val membersList by homeViewModel.members.collectAsState()
+
+    val sortedMembers = remember(membersList) {
+        membersList.sortedBy { profile ->
+            val principal = profile.instruments.firstOrNull().orEmpty()
+            instrumentosList.indexOf(principal).let { if (it >= 0) it else instrumentosList.size }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // CABECERA FIJA
@@ -73,7 +90,7 @@ fun HomeScreen() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.LightGray)
+                .background(Color(0xFFEEEEEE))
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
@@ -165,7 +182,8 @@ fun HomeScreen() {
             Spacer(modifier = Modifier.height(8.dp))
 
             // Lista de miembros
-            membersList.forEach { profile ->
+            sortedMembers.forEach { profile ->
+                val instrumento = profile.instruments.firstOrNull() ?: "Sin instrumento"
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -183,6 +201,12 @@ fun HomeScreen() {
                             .border(1.dp, Color.DarkGray, RoundedCornerShape(8.dp))
                     )
                     Spacer(modifier = Modifier.width(12.dp))
+                    Image(
+                        painter = painterResource(id = getInstrumentDrawable(instrumento)),
+                        contentDescription = instrumento,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = profile.displayName,
