@@ -20,10 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.DIRECCION_MUSICAL
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.MAX_INSTRUMENTS
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.MAX_INSTRUMENTS_DIRECTOR
+import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
+import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getInstrumentDrawable
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.colorOro
-
-private const val DIRECTION_KEY = ProfileViewModel.DIRECCION_MUSICAL
 
 @Composable
 fun ProfileScreen() {
@@ -90,7 +93,7 @@ fun ProfileScreen() {
 }
 
 private val instrumentosList = listOf(
-    DIRECTION_KEY, "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
+    DIRECCION_MUSICAL, "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
     "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
     "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
     "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
@@ -109,12 +112,7 @@ private fun ProfileHeader(
         Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val imageRes = when {
-            gender == "Mujer" && isDirector -> R.drawable.perfil_directora
-            gender == "Mujer" -> R.drawable.perfil_alumna
-            isDirector -> R.drawable.perfil_director
-            else -> R.drawable.perfil_alumno
-        }
+        val imageRes = ImageHelper.getProfileImage(gender, isDirector)
         Card(
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
@@ -153,7 +151,7 @@ private fun ProfileHeader(
 private fun InstrumentInstructions(isDirector: Boolean) {
     Column(Modifier.fillMaxWidth()) {
         Text(
-            "Seleccione su instrumento (máx. ${if (isDirector) 2 else 3})",
+            "Seleccione su instrumento (máx. ${if (isDirector) MAX_INSTRUMENTS_DIRECTOR else MAX_INSTRUMENTS})",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -188,7 +186,7 @@ private fun InstrumentGrid(
                 val instr = instrumentosList[i]
                 val isSelected = selected.contains(instr)
                 val isPrincipal = selected.firstOrNull() == instr
-                val disabled = instr == DIRECTION_KEY && !isDirector
+                val disabled = instr == DIRECCION_MUSICAL && !isDirector
 
                 val stroke = when {
                     disabled -> BorderStroke(
@@ -284,30 +282,4 @@ private fun EditNameDialog(
             }
         }
     }
-}
-
-private fun getInstrumentDrawable(instrument: String): Int = when (instrument) {
-    DIRECTION_KEY -> R.drawable.batuta
-    "FLAUTÍN" -> R.drawable.flautin
-    "FLAUTA" -> R.drawable.flauta
-    "OBOE" -> R.drawable.oboe
-    "CORNO INGLÉS" -> R.drawable.clarinete
-    "FAGOT" -> R.drawable.fagot
-    "CONTRAFAGOT" -> R.drawable.contrafagot
-    "REQUINTO", "CLARINETE" -> R.drawable.clarinete
-    "CLARINETE BAJO" -> R.drawable.clarinete_bajo
-    "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO" -> R.drawable.saxofon
-    "TROMPA" -> R.drawable.trompa
-    "FLISCORNO", "TROMPETA" -> R.drawable.trompeta
-    "TROMBÓN", "TROMBÓN BAJO" -> R.drawable.trombon
-    "BOMBARDINO", "TUBA" -> R.drawable.tuba
-    "VIOLONCHELO" -> R.drawable.violonchelo
-    "CONTRABAJO" -> R.drawable.contrabajo
-    "CAJA", "PERCUSIÓN" -> R.drawable.caja
-    "BOMBO" -> R.drawable.bombo
-    "PLATOS" -> R.drawable.platos
-    "TIMBALES" -> R.drawable.timbales
-    "LÁMINAS" -> R.drawable.laminas
-    "BATERÍA" -> R.drawable.bateria
-    else -> R.drawable.instrumento_generico
 }

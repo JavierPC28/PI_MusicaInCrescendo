@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.DIRECCION_MUSICAL
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
@@ -17,11 +18,6 @@ class ProfileViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
 ) : ViewModel() {
-
-    companion object {
-        // Clave para instrumento de dirección musical
-        const val DIRECCION_MUSICAL = "DIRECCIÓN MUSICAL"
-    }
 
     // --- Estados de UI ---
     sealed class UiState {

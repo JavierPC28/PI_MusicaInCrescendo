@@ -24,6 +24,7 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
 
 @Composable
@@ -172,12 +173,7 @@ fun HomeScreen() {
                         .padding(vertical = 8.dp)
                 ) {
                     // Selección de imagen según género y rol
-                    val imageRes = when {
-                        profile.gender == "Mujer" && profile.isDirector -> R.drawable.perfil_directora
-                        profile.gender == "Mujer" -> R.drawable.perfil_alumna
-                        profile.isDirector -> R.drawable.perfil_director
-                        else -> R.drawable.perfil_alumno
-                    }
+                    val imageRes = ImageHelper.getProfileImage(profile.gender, profile.isDirector)
                     Image(
                         painter = painterResource(id = imageRes),
                         contentDescription = profile.displayName,
