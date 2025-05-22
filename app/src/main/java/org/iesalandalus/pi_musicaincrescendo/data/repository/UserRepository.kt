@@ -29,6 +29,8 @@ interface UserRepository {
 
     // Obtenemos número total de usuarios registrados
     suspend fun getUserCount(): Int
+
+    suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>>
 }
 
 class UserRepositoryImpl(
@@ -81,5 +83,20 @@ class UserRepositoryImpl(
     override suspend fun getUserCount(): Int {
         val snapshot = database.getReference("users").get().await()
         return snapshot.childrenCount.toInt()
+    }
+
+    override suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>> {
+        val snapshot = database.getReference("users").get().await()
+        val result = mutableListOf<Pair<String, UserProfile>>()
+        for (child in snapshot.children) {
+            val uid = child.key ?: continue
+            val displayName = child.child("displayName").getValue(String::class.java) ?: ""
+            val gender = child.child("gender").getValue(String::class.java) ?: ""
+            val isDirector = child.child("isDirector").getValue(Boolean::class.java) == true
+            val instruments = child.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
+            val profile = UserProfile(displayName, gender, isDirector, instruments)
+            result.add(uid to profile)
+        }
+        return result
     }
 }

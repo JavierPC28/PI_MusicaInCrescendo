@@ -32,6 +32,7 @@ fun HomeScreen() {
 
     val homeViewModel: HomeViewModel = viewModel()
     val miembros by homeViewModel.userCount.collectAsState()
+    val membersList by homeViewModel.members.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
         // CABECERA FIJA
@@ -159,6 +160,48 @@ fun HomeScreen() {
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Lista de miembros
+            membersList.forEach { profile ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    // Selección de imagen según género y rol
+                    val imageRes = when {
+                        profile.gender == "Mujer" && profile.isDirector -> R.drawable.perfil_directora
+                        profile.gender == "Mujer" -> R.drawable.perfil_alumna
+                        profile.isDirector -> R.drawable.perfil_director
+                        else -> R.drawable.perfil_alumno
+                    }
+                    Image(
+                        painter = painterResource(id = imageRes),
+                        contentDescription = profile.displayName,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .border(1.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = profile.displayName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = profile.instruments.firstOrNull() ?: "Sin instrumento",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
         }
     }
 }
