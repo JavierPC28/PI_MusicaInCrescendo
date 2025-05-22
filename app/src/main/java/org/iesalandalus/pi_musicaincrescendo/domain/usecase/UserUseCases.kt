@@ -1,32 +1,31 @@
 package org.iesalandalus.pi_musicaincrescendo.domain.usecase
 
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepository
 
-class CreateUserProfileUseCase(
+class UserUseCases(
     private val repo: UserRepository
 ) {
-    suspend operator fun invoke(
+    suspend fun createUserProfile(
         uid: String,
         displayName: String,
         gender: String,
-        isDirector: Boolean
-    ) {
-        repo.createUserProfile(uid, displayName, gender, isDirector)
-    }
-}
+        isDirector: Boolean,
+        instruments: List<String> = emptyList()
+    ) = repo.createUserProfile(uid, displayName, gender, isDirector, instruments)
 
-class UpdateDisplayNameUseCase(
-    private val repo: UserRepository
-) {
-    suspend operator fun invoke(uid: String, newName: String) {
+    suspend fun updateDisplayName(uid: String, newName: String) =
         repo.updateDisplayName(uid, newName)
-    }
-}
 
-class UpdateInstrumentsUseCase(
-    private val repo: UserRepository
-) {
-    suspend operator fun invoke(uid: String, instruments: List<String>) {
+    suspend fun updateInstruments(uid: String, instruments: List<String>) =
         repo.updateInstruments(uid, instruments)
-    }
+
+    suspend fun getUserProfile(uid: String): UserProfile =
+        repo.getUserProfile(uid)
+
+    suspend fun getUserCount(): Int =
+        repo.getUserCount()
+
+    suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>> =
+        repo.getAllUserProfiles()
 }

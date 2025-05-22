@@ -8,22 +8,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetUserProfileUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateDisplayNameUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateInstrumentsUseCase
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class ProfileViewModel(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
-    private val getProfileUseCase: GetUserProfileUseCase = GetUserProfileUseCase(UserRepositoryImpl()),
-    private val updateNameUseCase: UpdateDisplayNameUseCase = UpdateDisplayNameUseCase(
-        UserRepositoryImpl()
-    ),
-    private val updateInstrumentsUseCase: UpdateInstrumentsUseCase = UpdateInstrumentsUseCase(
-        UserRepositoryImpl()
-    )
+    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
 ) : ViewModel() {
 
     companion object {
@@ -73,7 +65,7 @@ class ProfileViewModel(
             viewModelScope.launch {
                 _uiState.value = UiState.Loading
                 try {
-                    val profile: UserProfile = getProfileUseCase(uid)
+                    val profile: UserProfile = userUseCases.getUserProfile(uid)
                     _displayName.value = profile.displayName
                     _gender.value = profile.gender
                     _isDirector.value = profile.isDirector
@@ -98,7 +90,7 @@ class ProfileViewModel(
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {
-                updateNameUseCase(uid, newName)
+                userUseCases.updateDisplayName(uid, newName)
                 _displayName.value = newName
                 _uiState.value = UiState.Success("Nombre actualizado")
             } catch (_: Exception) {
@@ -125,8 +117,8 @@ class ProfileViewModel(
         auth.currentUser?.uid?.let { uid ->
             viewModelScope.launch {
                 try {
-                    updateInstrumentsUseCase(uid, current)
-                } catch (_: Exception) { /* Manejo de errores */
+                    userUseCases.updateInstruments(uid, current)
+                } catch (_: Exception) { /* ... */
                 }
             }
         }

@@ -5,16 +5,12 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetAllUserProfilesUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetUserCountUseCase
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
 
 class HomeViewModel(
-    private val getUserCountUseCase: GetUserCountUseCase = GetUserCountUseCase(UserRepositoryImpl()),
-    private val getAllUserProfilesUseCase: GetAllUserProfilesUseCase = GetAllUserProfilesUseCase(
-        UserRepositoryImpl()
-    )
+    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
 ) : ViewModel() {
 
     private val _userCount = MutableStateFlow(0)
@@ -30,16 +26,13 @@ class HomeViewModel(
 
     private fun cargarUserCount() {
         viewModelScope.launch {
-            val count = getUserCountUseCase()
-            _userCount.value = count
+            _userCount.value = userUseCases.getUserCount()
         }
     }
 
     private fun cargarMembers() {
         viewModelScope.launch {
-            val list = getAllUserProfilesUseCase()
-            // Sólo nos importa el perfil, no el UID
-            _members.value = list.map { it.second }
+            _members.value = userUseCases.getAllUserProfiles().map { it.second }
         }
     }
 }
