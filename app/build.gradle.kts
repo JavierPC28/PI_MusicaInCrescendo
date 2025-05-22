@@ -42,6 +42,9 @@ android {
 
 dependencies {
     implementation(libs.accompanist.systemuicontroller)
+
+    // Google Maps SDK
+    implementation(libs.play.services.maps)
     implementation(libs.maps.compose)
 
     // Core y Activity KTX

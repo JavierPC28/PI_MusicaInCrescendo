@@ -26,6 +26,9 @@ interface UserRepository {
 
     // Obtenemos el perfil completo del usuario
     suspend fun getUserProfile(uid: String): UserProfile
+
+    // Obtenemos número total de usuarios registrados
+    suspend fun getUserCount(): Int
 }
 
 class UserRepositoryImpl(
@@ -70,7 +73,13 @@ class UserRepositoryImpl(
         val displayName = snapshot.child("displayName").getValue(String::class.java) ?: ""
         val gender = snapshot.child("gender").getValue(String::class.java) ?: ""
         val isDirector = snapshot.child("isDirector").getValue(Boolean::class.java) == true
-        val instruments = snapshot.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
+        val instruments =
+            snapshot.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
         return UserProfile(displayName, gender, isDirector, instruments)
+    }
+
+    override suspend fun getUserCount(): Int {
+        val snapshot = database.getReference("users").get().await()
+        return snapshot.childrenCount.toInt()
     }
 }
