@@ -6,6 +6,7 @@ import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Validator
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
@@ -93,11 +94,19 @@ class RegisterViewModel(
                 val defaultName = email.value
                     .substringBefore("@")
                     .replaceFirstChar { it.uppercaseChar() }
+
+                val initialInstruments = mutableListOf<String>().apply {
+                    if (isDirector.value) {
+                        add(Constants.DIRECCION_MUSICAL)
+                    }
+                }
+
                 userUseCases.createUserProfile(
                     uid,
                     defaultName,
                     gender.value,
-                    isDirector.value
+                    isDirector.value,
+                    initialInstruments
                 )
 
                 // 3) Señalamos éxito

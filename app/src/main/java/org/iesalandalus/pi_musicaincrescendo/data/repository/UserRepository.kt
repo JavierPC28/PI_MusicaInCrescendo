@@ -5,6 +5,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 
 // Modelo de datos del perfil de usuario
 data class UserProfile(
@@ -52,11 +53,19 @@ class UserRepositoryImpl(
         instruments: List<String>
     ) {
         val userRef = database.getReference("users").child(uid)
+
+        val sanitizedInstruments =
+            if (isDirector && !instruments.contains(Constants.DIRECCION_MUSICAL)) {
+                listOf(Constants.DIRECCION_MUSICAL) + instruments
+            } else {
+                instruments
+            }.take(Constants.MAX_INSTRUMENTS)
+
         val profileData = mapOf(
             "displayName" to displayName,
             "gender" to gender,
             "isDirector" to isDirector,
-            "instruments" to instruments
+            "instruments" to sanitizedInstruments
         )
         userRef.setValue(profileData).await()
     }
@@ -114,6 +123,7 @@ class UserRepositoryImpl(
             override fun onDataChange(snapshot: DataSnapshot) {
                 trySend(snapshot.childrenCount.toInt())
             }
+
             override fun onCancelled(error: DatabaseError) {
                 close(error.toException())
             }
