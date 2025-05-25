@@ -2,16 +2,10 @@ package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import android.content.Intent
 import android.view.View
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,9 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.*
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.MapView
@@ -72,14 +64,15 @@ fun HomeScreen() {
         Column(
             modifier = Modifier
                 .weight(1f)
-                .background(Color(0xFFEEEEEE))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             Text(
                 text = "Local de ensayo",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -157,17 +150,20 @@ fun HomeScreen() {
                 SocialLink(
                     iconRes = R.drawable.facebook,
                     label = "Facebook",
-                    url = "https://www.facebook.com/BandaAlcolea"
+                    url = "https://www.facebook.com/BandaAlcolea",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
                 SocialLink(
                     iconRes = R.drawable.instagram,
                     label = "Instagram",
-                    url = "https://www.instagram.com/bandaalcolea"
+                    url = "https://www.instagram.com/bandaalcolea",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
                 SocialLink(
                     iconRes = R.drawable.youtube,
                     label = "YouTube",
-                    url = "https://www.youtube.com/@bandamunicipaldemusicadeal9891"
+                    url = "https://www.youtube.com/@bandamunicipaldemusicadeal9891",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -177,7 +173,8 @@ fun HomeScreen() {
             Text(
                 text = "Miembros ($miembros)",
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -231,7 +228,7 @@ private fun HeaderSection() {
 }
 
 @Composable
-private fun SocialLink(iconRes: Int, label: String, url: String) {
+private fun SocialLink(iconRes: Int, label: String, url: String, tint: Color) {
     val context = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -245,7 +242,7 @@ private fun SocialLink(iconRes: Int, label: String, url: String) {
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = label, fontSize = 14.sp)
+        Text(text = label, fontSize = 14.sp, color = tint)
     }
 }
 
@@ -281,11 +278,13 @@ private fun MemberRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = displayName,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = instrument.ifEmpty { "Sin instrumento" },
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

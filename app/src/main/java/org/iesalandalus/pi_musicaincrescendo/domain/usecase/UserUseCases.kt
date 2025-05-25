@@ -1,5 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.domain.usecase
 
+import kotlinx.coroutines.flow.Flow
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepository
 
@@ -28,4 +29,6 @@ class UserUseCases(
 
     suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>> =
         repo.getAllUserProfiles()
+
+    fun getUsersRealTime(): Flow<List<Pair<String, UserProfile>>> = repo.getUsersRealTime()
 }

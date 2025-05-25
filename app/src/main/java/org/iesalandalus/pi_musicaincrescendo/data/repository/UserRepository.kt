@@ -1,6 +1,9 @@
 package org.iesalandalus.pi_musicaincrescendo.data.repository
 
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 // Modelo de datos del perfil de usuario
@@ -31,6 +34,8 @@ interface UserRepository {
     suspend fun getUserCount(): Int
 
     suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>>
+
+    fun getUsersRealTime(): Flow<List<Pair<String, UserProfile>>>
 }
 
 class UserRepositoryImpl(
@@ -93,10 +98,41 @@ class UserRepositoryImpl(
             val displayName = child.child("displayName").getValue(String::class.java) ?: ""
             val gender = child.child("gender").getValue(String::class.java) ?: ""
             val isDirector = child.child("isDirector").getValue(Boolean::class.java) == true
-            val instruments = child.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
+            val instruments =
+                child.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
             val profile = UserProfile(displayName, gender, isDirector, instruments)
             result.add(uid to profile)
         }
         return result
+    }
+
+    override fun getUsersRealTime(): Flow<List<Pair<String, UserProfile>>> = callbackFlow {
+        val usersRef = database.getReference("users")
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val users = mutableListOf<Pair<String, UserProfile>>()
+                for (child in snapshot.children) {
+                    val uid = child.key ?: continue
+                    val profile = parseUserProfile(child)
+                    users.add(uid to profile)
+                }
+                trySend(users)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        usersRef.addValueEventListener(listener)
+        awaitClose { usersRef.removeEventListener(listener) }
+    }
+
+    private fun parseUserProfile(snapshot: DataSnapshot): UserProfile {
+        return UserProfile(
+            displayName = snapshot.child("displayName").getValue(String::class.java) ?: "",
+            gender = snapshot.child("gender").getValue(String::class.java) ?: "",
+            isDirector = snapshot.child("isDirector").getValue(Boolean::class.java) == true,
+            instruments = snapshot.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
+        )
     }
 }

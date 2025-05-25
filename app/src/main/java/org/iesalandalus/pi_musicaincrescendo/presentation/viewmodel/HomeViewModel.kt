@@ -2,8 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
@@ -21,7 +20,7 @@ class HomeViewModel(
 
     init {
         cargarUserCount()
-        cargarMembers()
+        cargarMembersRealTime()
     }
 
     private fun cargarUserCount() {
@@ -30,9 +29,11 @@ class HomeViewModel(
         }
     }
 
-    private fun cargarMembers() {
+    private fun cargarMembersRealTime() {
         viewModelScope.launch {
-            _members.value = userUseCases.getAllUserProfiles().map { it.second }
+            userUseCases.getUsersRealTime().collectLatest { users ->
+                _members.value = users.map { it.second }
+            }
         }
     }
 }
