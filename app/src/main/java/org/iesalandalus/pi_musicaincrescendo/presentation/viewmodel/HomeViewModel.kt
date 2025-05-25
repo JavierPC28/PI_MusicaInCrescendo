@@ -19,16 +19,19 @@ class HomeViewModel(
     private val _members = MutableStateFlow<List<UserProfile>>(emptyList())
     val members: StateFlow<List<UserProfile>> get() = _members
 
+    private var userCountJob: Job? = null
     private var membersJob: Job? = null
 
     init {
-        cargarUserCount()
+        cargarUserCountRealTime()
         cargarMembersRealTime()
     }
 
-    private fun cargarUserCount() {
-        viewModelScope.launch {
-            _userCount.value = userUseCases.getUserCount()
+    private fun cargarUserCountRealTime() {
+        userCountJob = viewModelScope.launch {
+            userUseCases.getUserCountRealTime().collectLatest { count ->
+                _userCount.value = count
+            }
         }
     }
 
@@ -45,7 +48,9 @@ class HomeViewModel(
     }
 
     fun cancelarRecoleccion() {
+        userCountJob?.cancel()
         membersJob?.cancel()
+        userCountJob = null
         membersJob = null
     }
 }

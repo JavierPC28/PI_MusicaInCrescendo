@@ -35,6 +35,8 @@ interface UserRepository {
 
     suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>>
 
+    fun getUserCountRealTime(): Flow<Int>
+
     fun getUsersRealTime(): Flow<List<Pair<String, UserProfile>>>
 }
 
@@ -104,6 +106,20 @@ class UserRepositoryImpl(
             result.add(uid to profile)
         }
         return result
+    }
+
+    override fun getUserCountRealTime(): Flow<Int> = callbackFlow {
+        val usersRef = database.getReference("users")
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                trySend(snapshot.childrenCount.toInt())
+            }
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        usersRef.addValueEventListener(listener)
+        awaitClose { usersRef.removeEventListener(listener) }
     }
 
     override fun getUsersRealTime(): Flow<List<Pair<String, UserProfile>>> = callbackFlow {
