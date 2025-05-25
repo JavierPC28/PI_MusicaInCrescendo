@@ -17,6 +17,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.MainViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.LoginScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.RegisterScreen
@@ -172,6 +173,7 @@ fun MainScaffold(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val mainViewModel: MainViewModel = viewModel()
+    val homeViewModel: HomeViewModel = viewModel()
     val activity = LocalActivity.current
 
     ModalNavigationDrawer(
@@ -180,6 +182,7 @@ fun MainScaffold(
             ModalDrawerSheet {
                 DrawerContent(
                     onLogout = {
+                        homeViewModel.cancelarRecoleccion()
                         mainViewModel.logout()
                         navController.navigate("login") { popUpTo(0) }
                     },

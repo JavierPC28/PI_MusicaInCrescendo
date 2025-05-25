@@ -2,6 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
@@ -18,6 +19,8 @@ class HomeViewModel(
     private val _members = MutableStateFlow<List<UserProfile>>(emptyList())
     val members: StateFlow<List<UserProfile>> get() = _members
 
+    private var membersJob: Job? = null
+
     init {
         cargarUserCount()
         cargarMembersRealTime()
@@ -30,10 +33,19 @@ class HomeViewModel(
     }
 
     private fun cargarMembersRealTime() {
-        viewModelScope.launch {
-            userUseCases.getUsersRealTime().collectLatest { users ->
-                _members.value = users.map { it.second }
+        membersJob = viewModelScope.launch {
+            try {
+                userUseCases.getUsersRealTime().collectLatest { users ->
+                    _members.value = users.map { it.second }
+                }
+            } catch (_: Exception) {
+                // Ignoramos errores
             }
         }
+    }
+
+    fun cancelarRecoleccion() {
+        membersJob?.cancel()
+        membersJob = null
     }
 }
