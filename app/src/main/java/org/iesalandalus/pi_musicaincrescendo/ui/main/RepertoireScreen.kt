@@ -1,13 +1,11 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,8 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
 
 /**
  * Vista de repertorio actualizada.
@@ -46,7 +44,10 @@ fun RepertoireScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            Button(onClick = { /* Acción añadir tema */ }) {
+            Button(
+                onClick = { /* Acción añadir tema */ },
+                shape = RoundedCornerShape(8.dp)
+            ) {
                 Text(text = "Añadir tema")
             }
         }
@@ -64,8 +65,14 @@ fun RepertoireScreen(
                 value = searchText,
                 onValueChange = viewModel::onSearchTextChange,
                 modifier = Modifier.weight(1f),
-                placeholder = { Text(text = "Buscar por título o compositor") },
                 singleLine = true,
+                maxLines = 1,
+                placeholder = {
+                    Text(
+                        text = "Buscar por título o compositor",
+                        fontSize = 14.sp
+                    )
+                },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) }
             )
 
@@ -74,16 +81,17 @@ fun RepertoireScreen(
                 painter = painterResource(
                     id = if (isIconToggled) R.drawable.descendente else R.drawable.ascendente
                 ),
-                contentDescription = "Alternar vista",
+                contentDescription = "Orden ascendente/descendente",
                 modifier = Modifier
                     .size(32.dp)
-                    .clickable { viewModel.onToggleIcon() }
+                    .clickable { viewModel.onToggleIcon() },
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // Icono adicional (Add)
+            // Icono adicional (filtro)
             Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "Otra acción",
+                painter = painterResource(id = R.drawable.filtro),
+                contentDescription = "Filtro para organizar temas",
                 modifier = Modifier.size(32.dp)
             )
         }
@@ -104,12 +112,14 @@ fun RepertoireScreen(
                 Icon(
                     painter = painterResource(id = R.drawable.caja_vacia),
                     contentDescription = null,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "No hay ningún tema disponible",
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
