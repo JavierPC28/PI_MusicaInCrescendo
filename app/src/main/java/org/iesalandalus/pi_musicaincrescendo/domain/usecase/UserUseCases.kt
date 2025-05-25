@@ -27,8 +27,5 @@ class UserUseCases(
     suspend fun getUserCount(): Int =
         repo.getUserCount()
 
-    suspend fun getAllUserProfiles(): List<Pair<String, UserProfile>> =
-        repo.getAllUserProfiles()
-
     fun getUsersRealTime(): Flow<List<Pair<String, UserProfile>>> = repo.getUsersRealTime()
 }
