@@ -102,8 +102,13 @@ fun HomeScreen() {
                             modifier = Modifier.fillMaxSize(),
                             update = { mv ->
                                 mv.getMapAsync { map ->
-                                    map.uiSettings.isScrollGesturesEnabled = true
-                                    map.uiSettings.isZoomGesturesEnabled = true
+                                    // Deshabilitamos gestos de desplazamiento, rotación e inclinación
+                                    map.uiSettings.isScrollGesturesEnabled = false
+                                    map.uiSettings.isRotateGesturesEnabled = false
+                                    map.uiSettings.isTiltGesturesEnabled = false
+                                    // Deshabilitamos zoom con gestos y habilitamos controles de zoom
+                                    map.uiSettings.isZoomGesturesEnabled = false
+                                    map.uiSettings.isZoomControlsEnabled = true
                                     val coords = LatLng(36.85059904205266, -2.4650644298497406)
                                     map.addMarker(
                                         MarkerOptions().position(coords).title("Local de ensayo")
