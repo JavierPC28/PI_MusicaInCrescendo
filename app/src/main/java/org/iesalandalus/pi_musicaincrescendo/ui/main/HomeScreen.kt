@@ -18,8 +18,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.net.toUri
+import androidx.lifecycle.*
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -112,9 +114,9 @@ fun HomeScreen() {
                     update = { mv ->
                         mv.getMapAsync { map ->
                             map.uiSettings.isZoomControlsEnabled = true
-                            val coords = LatLng(36.85059904205266, -2.4650644298497406)
+                            val coords = LatLng(36.97243740024984, -2.961874537162341)
                             map.addMarker(MarkerOptions().position(coords).title("Local de ensayo"))
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(coords, 15f))
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(coords, 17f))
                         }
                     }
                 )
@@ -190,7 +192,6 @@ fun HomeScreen() {
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    // Selección de imagen según género y rol
                     val imageRes = ImageHelper.getProfileImage(profile.gender, profile.isDirector)
                     Image(
                         painter = painterResource(id = imageRes),
@@ -216,7 +217,7 @@ fun HomeScreen() {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = profile.instruments.firstOrNull() ?: "Sin instrumento",
+                            text = instrumento,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -224,6 +225,39 @@ fun HomeScreen() {
             }
         }
     }
+}
+
+@Composable
+private fun rememberMapViewWithLifecycle(): MapView {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    // Creamos MapView una sola vez
+    val mapView = remember {
+        MapView(context).apply {
+            id = View.generateViewId()
+        }
+    }
+    // Observamos eventos de ciclo de vida
+    DisposableEffect(lifecycleOwner) {
+        val lifecycle = lifecycleOwner.lifecycle
+        val observer = LifecycleEventObserver { _: LifecycleOwner, event ->
+            when (event) {
+                Lifecycle.Event.ON_CREATE -> mapView.onCreate(null)
+                Lifecycle.Event.ON_START -> mapView.onStart()
+                Lifecycle.Event.ON_RESUME -> mapView.onResume()
+                Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
+                Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                else -> {/* ... */
+                }
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
+    return mapView
 }
 
 @Composable
@@ -243,19 +277,4 @@ private fun SocialLink(iconRes: Int, label: String, url: String) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(text = label, fontSize = 14.sp)
     }
-}
-
-@Composable
-fun rememberMapViewWithLifecycle(): MapView {
-    val context = LocalContext.current
-    val mapView = remember {
-        MapView(context).apply {
-            id = View.generateViewId()
-        }
-    }
-    DisposableEffect(Unit) {
-        MapsInitializer.initialize(context)
-        onDispose { }
-    }
-    return mapView
 }
