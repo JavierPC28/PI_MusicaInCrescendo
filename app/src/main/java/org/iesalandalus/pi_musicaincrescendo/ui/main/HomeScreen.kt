@@ -200,7 +200,7 @@ private fun HeaderSection() {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        androidx.compose.foundation.Image(
+        Image(
             painter = painterResource(id = R.drawable.banda_alcolea),
             contentDescription = "Icono Banda de Alcolea",
             modifier = Modifier
@@ -236,7 +236,7 @@ private fun SocialLink(iconRes: Int, label: String, url: String, tint: Color) {
             context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
         }
     ) {
-        androidx.compose.foundation.Image(
+        Image(
             painter = painterResource(id = iconRes),
             contentDescription = label,
             modifier = Modifier.size(24.dp)
@@ -261,7 +261,7 @@ private fun MemberRow(
             .padding(8.dp)
     ) {
         val imageRes = ImageHelper.getProfileImage(gender, isDirector)
-        androidx.compose.foundation.Image(
+        Image(
             painter = painterResource(id = imageRes),
             contentDescription = displayName,
             modifier = Modifier
@@ -269,7 +269,7 @@ private fun MemberRow(
                 .clip(RoundedCornerShape(8.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
-        androidx.compose.foundation.Image(
+        Image(
             painter = painterResource(id = getInstrumentDrawable(instrument)),
             contentDescription = instrument,
             modifier = Modifier.size(24.dp)
