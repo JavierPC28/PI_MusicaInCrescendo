@@ -148,22 +148,19 @@ fun HomeScreen() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 SocialLink(
-                    iconRes = R.drawable.facebook,
-                    label = "Facebook",
-                    url = "https://www.facebook.com/BandaAlcolea",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    R.drawable.facebook,
+                    "Facebook",
+                    "https://www.facebook.com/BandaAlcolea"
                 )
                 SocialLink(
-                    iconRes = R.drawable.instagram,
-                    label = "Instagram",
-                    url = "https://www.instagram.com/bandaalcolea",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    R.drawable.instagram,
+                    "Instagram",
+                    "https://www.instagram.com/bandaalcolea"
                 )
                 SocialLink(
-                    iconRes = R.drawable.youtube,
-                    label = "YouTube",
-                    url = "https://www.youtube.com/@bandamunicipaldemusicadeal9891",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    R.drawable.youtube,
+                    "YouTube",
+                    "https://www.youtube.com/@bandamunicipaldemusicadeal9891"
                 )
             }
 
@@ -228,7 +225,7 @@ private fun HeaderSection() {
 }
 
 @Composable
-private fun SocialLink(iconRes: Int, label: String, url: String, tint: Color) {
+private fun SocialLink(iconRes: Int, label: String, url: String) {
     val context = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -242,7 +239,7 @@ private fun SocialLink(iconRes: Int, label: String, url: String, tint: Color) {
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = label, fontSize = 14.sp, color = tint)
+        Text(text = label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 

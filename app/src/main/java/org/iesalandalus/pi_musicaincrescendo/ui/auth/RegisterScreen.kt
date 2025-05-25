@@ -16,8 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
+import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
 
 private val genderOptions = listOf(
@@ -25,24 +25,6 @@ private val genderOptions = listOf(
     "Mujer",
     "Prefiero no decirlo"
 )
-
-@Composable
-private fun ProfileImage(gender: String, isDirector: Boolean) {
-    val imageRes = when {
-        gender == "Mujer" && isDirector -> R.drawable.perfil_directora
-        gender == "Mujer" && !isDirector -> R.drawable.perfil_alumna
-        gender == "Hombre" && isDirector -> R.drawable.perfil_director
-        gender == "Hombre" && !isDirector -> R.drawable.perfil_alumno
-        else -> R.drawable.perfil_neutro
-    }
-    Image(
-        painter = painterResource(id = imageRes),
-        contentDescription = "Imagen de perfil",
-        modifier = Modifier
-            .size(100.dp)
-            .padding(bottom = 16.dp)
-    )
-}
 
 @Composable
 private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -> Unit) {
@@ -139,7 +121,14 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ProfileImage(gender = gender, isDirector = isDirector)
+            val profileRes = ImageHelper.getProfileImage(gender, isDirector)
+            Image(
+                painter = painterResource(id = profileRes),
+                contentDescription = "Imagen de perfil",
+                modifier = Modifier
+                    .size(100.dp)
+                    .padding(bottom = 16.dp)
+            )
 
             EmailField(
                 value = email,
