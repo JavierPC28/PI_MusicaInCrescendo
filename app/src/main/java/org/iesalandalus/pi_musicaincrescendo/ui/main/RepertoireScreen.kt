@@ -4,6 +4,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,7 +20,7 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
 
 /**
- * Vista de repertorio.
+ * Vista de repertorio actualizada.
  */
 @Composable
 fun RepertoireScreen(
@@ -63,7 +64,7 @@ fun RepertoireScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Barra de búsqueda
+            // Barra de búsqueda con ícono de borrado
             OutlinedTextField(
                 value = searchText,
                 onValueChange = viewModel::onSearchTextChange,
@@ -73,10 +74,20 @@ fun RepertoireScreen(
                 placeholder = {
                     Text(
                         text = "Buscar por título o compositor",
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(start = 1.dp)
                     )
                 },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchText.isNotEmpty()) {
+                        IconButton(
+                            onClick = { viewModel.onSearchTextChange("") }
+                        ) {
+                            Icon(Icons.Filled.Close, contentDescription = "Borrar texto")
+                        }
+                    }
+                }
             )
 
             Icon(
@@ -103,7 +114,7 @@ fun RepertoireScreen(
         // Diálogo de selección de filtro
         if (showFilterDialog) {
             AlertDialog(
-                onDismissRequest = { /* No cerramos al tocar fuera para forzar selección */ },
+                onDismissRequest = { viewModel.onFilterOptionSelected(selectedFilter) },
                 title = { Text(text = "Filtrar por") },
                 text = {
                     Column {
