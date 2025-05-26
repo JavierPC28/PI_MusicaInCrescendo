@@ -15,10 +15,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
 
 /**
- * Vista de repertorio actualizada.
+ * Vista de repertorio.
  */
 @Composable
 fun RepertoireScreen(
@@ -27,6 +28,8 @@ fun RepertoireScreen(
     // Estados de UI desde ViewModel
     val searchText by viewModel.searchText.collectAsState()
     val isIconToggled by viewModel.isIconToggled.collectAsState()
+    val showFilterDialog by viewModel.showFilterDialog.collectAsState()
+    val selectedFilter by viewModel.selectedFilterOption.collectAsState()
 
     Column(
         modifier = Modifier
@@ -76,23 +79,60 @@ fun RepertoireScreen(
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) }
             )
 
-            // Icono que alterna (drawable)
             Icon(
                 painter = painterResource(
-                    id = if (isIconToggled) R.drawable.descendente else R.drawable.ascendente
+                    id = if (isIconToggled) R.drawable.ascendente else R.drawable.descendente
                 ),
                 contentDescription = "Orden ascendente/descendente",
                 modifier = Modifier
                     .size(32.dp)
-                    .clickable { viewModel.onToggleIcon() },
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    .clickable { viewModel.onToggleIcon() }
             )
 
-            // Icono adicional (filtro)
             Icon(
-                painter = painterResource(id = R.drawable.filtro),
-                contentDescription = "Filtro para organizar temas",
-                modifier = Modifier.size(32.dp)
+                painter = painterResource(R.drawable.filtro),
+                contentDescription = "Filtrar",
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { viewModel.onFilterIconClick() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Diálogo de selección de filtro
+        if (showFilterDialog) {
+            AlertDialog(
+                onDismissRequest = { /* No cerramos al tocar fuera para forzar selección */ },
+                title = { Text(text = "Filtrar por") },
+                text = {
+                    Column {
+                        FilterOption.entries.forEach { option ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.onFilterOptionSelected(option) }
+                                    .padding(vertical = 8.dp)
+                            ) {
+                                RadioButton(
+                                    selected = option == selectedFilter,
+                                    onClick = { viewModel.onFilterOptionSelected(option) }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = when (option) {
+                                        FilterOption.TITULO -> "Título"
+                                        FilterOption.COMPOSITOR -> "Compositor"
+                                        FilterOption.FECHA_PUBLICACION -> "Fecha de publicación"
+                                    }
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = { /* Sin botón de confirmar */ },
+                dismissButton = { /* Sin botón de cancelar */ }
             )
         }
 
