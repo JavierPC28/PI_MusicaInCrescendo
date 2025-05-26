@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -20,7 +21,50 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
 
 /**
- * Vista de repertorio actualizada.
+ * Diálogo de selección de filtro.
+ */
+@Composable
+private fun FilterDialog(
+    selectedFilter: FilterOption,
+    onOptionSelected: (FilterOption) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Filtrar por") },
+        text = {
+            Column {
+                FilterOption.entries.forEach { option ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onOptionSelected(option) }
+                            .padding(vertical = 8.dp)
+                    ) {
+                        RadioButton(
+                            selected = option == selectedFilter,
+                            onClick = { onOptionSelected(option) }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = when (option) {
+                                FilterOption.TITULO -> "Título"
+                                FilterOption.COMPOSITOR -> "Compositor"
+                                FilterOption.FECHA_PUBLICACION -> "Fecha de publicación"
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = { /* Sin botón de confirmar */ },
+        dismissButton = { /* Sin botón de cancelar */ }
+    )
+}
+
+/**
+ * Vista de repertorio.
  */
 @Composable
 fun RepertoireScreen(
@@ -56,7 +100,7 @@ fun RepertoireScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Fila de búsqueda e iconos
         Row(
@@ -75,7 +119,8 @@ fun RepertoireScreen(
                     Text(
                         text = "Buscar por título o compositor",
                         fontSize = 14.sp,
-                        modifier = Modifier.padding(start = 1.dp)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
@@ -113,37 +158,10 @@ fun RepertoireScreen(
 
         // Diálogo de selección de filtro
         if (showFilterDialog) {
-            AlertDialog(
-                onDismissRequest = { viewModel.onFilterOptionSelected(selectedFilter) },
-                title = { Text(text = "Filtrar por") },
-                text = {
-                    Column {
-                        FilterOption.entries.forEach { option ->
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { viewModel.onFilterOptionSelected(option) }
-                                    .padding(vertical = 8.dp)
-                            ) {
-                                RadioButton(
-                                    selected = option == selectedFilter,
-                                    onClick = { viewModel.onFilterOptionSelected(option) }
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = when (option) {
-                                        FilterOption.TITULO -> "Título"
-                                        FilterOption.COMPOSITOR -> "Compositor"
-                                        FilterOption.FECHA_PUBLICACION -> "Fecha de publicación"
-                                    }
-                                )
-                            }
-                        }
-                    }
-                },
-                confirmButton = { /* Sin botón de confirmar */ },
-                dismissButton = { /* Sin botón de cancelar */ }
+            FilterDialog(
+                selectedFilter = selectedFilter,
+                onOptionSelected = { viewModel.onFilterOptionSelected(it) },
+                onDismiss = { viewModel.onFilterOptionSelected(selectedFilter) }
             )
         }
 
