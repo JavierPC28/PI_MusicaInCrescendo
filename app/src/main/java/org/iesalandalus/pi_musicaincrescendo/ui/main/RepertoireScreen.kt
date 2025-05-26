@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
@@ -68,6 +69,7 @@ private fun FilterDialog(
  */
 @Composable
 fun RepertoireScreen(
+    navController: NavHostController,
     viewModel: RepertoireViewModel = viewModel()
 ) {
     // Estados de UI desde ViewModel
@@ -93,7 +95,9 @@ fun RepertoireScreen(
                 fontWeight = FontWeight.Bold
             )
             Button(
-                onClick = { /* Acción añadir tema */ },
+                onClick = {
+                    navController.navigate("add_repertoire")
+                },
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(text = "Añadir tema")

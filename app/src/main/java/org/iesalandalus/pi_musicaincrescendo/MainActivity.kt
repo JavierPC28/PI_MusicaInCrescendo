@@ -6,6 +6,8 @@ import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,54 +26,13 @@ import org.iesalandalus.pi_musicaincrescendo.ui.auth.RegisterScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.main.*
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.PI_MusicaInCrescendoTheme
 
-/**
- * Define las rutas, títulos y contenido de las pantallas principales,
- * aplicando el padding correspondiente.
- */
-sealed class Screen(
-    val route: String,
-    val title: String,
-    val content: @Composable (PaddingValues) -> Unit
-) {
-    object Home : Screen("home", "Inicio", { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) { HomeScreen() }
-    })
-
-    object Events : Screen("events", "Eventos", { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) { EventsScreen() }
-    })
-
-    object Repertoire : Screen("repertoire", "Repertorio", { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) { RepertoireScreen() }
-    })
-
-    object Notifications : Screen("notifications", "Notificaciones", { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) { NotificationsScreen() }
-    })
-
-    object Profile : Screen("profile", "Perfil", { padding ->
-        Box(
-            Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) { ProfileScreen() }
-    })
+sealed class Screen(val route: String, val title: String) {
+    object Home : Screen("home", "Inicio")
+    object Events : Screen("events", "Eventos")
+    object Repertoire : Screen("repertoire", "Repertorio")
+    object Notifications : Screen("notifications", "Notificaciones")
+    object Profile : Screen("profile", "Perfil")
+    object AddRepertoire : Screen("add_repertoire", "Añadir obra")
 }
 
 class MainActivity : ComponentActivity() {
@@ -100,17 +61,17 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val startRoute =
-        if (AuthRepositoryImpl().currentUserEmail() != null) Screen.Home.route else "login"
+    val startRoute = if (AuthRepositoryImpl().currentUserEmail() != null)
+        Screen.Home.route
+    else
+        "login"
 
-    NavHost(
-        navController = navController,
-        startDestination = startRoute,
-        modifier = Modifier.fillMaxSize()
-    ) {
+    NavHost(navController = navController, startDestination = startRoute) {
+        // --- Login y Registro ---
         composable("login") {
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
@@ -144,20 +105,74 @@ fun AppNavHost() {
                 }
             }
         }
-        // Pantallas principales
+
+        // --- Bottom navigation screens (except Repertoire) ---
         listOf(
             Screen.Home,
             Screen.Events,
-            Screen.Repertoire,
             Screen.Notifications,
             Screen.Profile
         ).forEach { screen ->
             composable(screen.route) {
-                MainScaffold(
-                    navController = navController,
-                    title = screen.title
-                ) { padding ->
-                    screen.content(padding)
+                MainScaffold(navController, screen.title) { padding ->
+                    Box(
+                        Modifier
+                            .padding(padding)
+                            .fillMaxSize()
+                    ) {
+                        when (screen) {
+                            Screen.Home -> HomeScreen()
+                            Screen.Events -> EventsScreen()
+                            Screen.Notifications -> NotificationsScreen()
+                            Screen.Profile -> ProfileScreen()
+                            else -> {/* ... */
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Repertoire (necesita navController) ---
+        composable(Screen.Repertoire.route) {
+            MainScaffold(navController, Screen.Repertoire.title) { padding ->
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                ) {
+                    RepertoireScreen(navController)
+                }
+            }
+        }
+
+        composable(Screen.AddRepertoire.route) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(Screen.AddRepertoire.title) },
+                        navigationIcon = {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver"
+                                )
+                            }
+                        },
+                        actions = {
+                            TextButton(onClick = { /* ... */ }) {
+                                Text("Guardar")
+                            }
+                        }
+                    )
+                }
+            ) { padding ->
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                ) {
+                    AddRepertoireScreen()
                 }
             }
         }
@@ -170,7 +185,7 @@ fun MainScaffold(
     title: String,
     content: @Composable (PaddingValues) -> Unit
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val mainViewModel: MainViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
@@ -198,9 +213,8 @@ fun MainScaffold(
                     onMenuClick = { scope.launch { drawerState.open() } }
                 )
             },
-            bottomBar = { BottomNavigationBar(navController) }
-        ) { innerPadding ->
-            content(innerPadding)
-        }
+            bottomBar = { BottomNavigationBar(navController) },
+            content = content
+        )
     }
 }
