@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.DIRECCION_MUSICAL
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.MAX_INSTRUMENTS
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.MAX_INSTRUMENTS_DIRECTOR
@@ -91,15 +92,6 @@ fun ProfileScreen() {
         }
     }
 }
-
-private val instrumentosList = listOf(
-    DIRECCION_MUSICAL, "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
-    "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
-    "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
-    "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
-    "BOMBARDINO", "TUBA", "VIOLONCHELO", "CONTRABAJO", "CAJA", "PERCUSIÓN",
-    "BOMBO", "PLATOS", "TIMBALES", "LÁMINAS", "BATERÍA"
-)
 
 @Composable
 private fun ProfileHeader(
@@ -182,8 +174,8 @@ private fun InstrumentGrid(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(instrumentosList.size) { i ->
-                val instr = instrumentosList[i]
+            items(Constants.instrumentosList.size) { i ->
+                val instr = Constants.instrumentosList[i]
                 val isSelected = selected.contains(instr)
                 val isPrincipal = selected.firstOrNull() == instr
                 val disabled = instr == DIRECCION_MUSICAL && !isDirector

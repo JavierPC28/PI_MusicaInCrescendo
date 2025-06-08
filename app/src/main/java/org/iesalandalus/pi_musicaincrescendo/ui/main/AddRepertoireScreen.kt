@@ -4,7 +4,8 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.AddRepertoireViewModel
 
@@ -79,166 +81,166 @@ fun AddRepertoireScreen(
         }
     }
 
-    val instrumentosList = listOf(
-        "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
-        "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
-        "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
-        "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
-        "BOMBARDINO", "TUBA", "VIOLONCHELO", "CONTRABAJO", "CAJA",
-        "PERCUSIÓN", "BOMBO", "PLATOS", "TIMBALES", "LÁMINAS", "BATERÍA"
-    )
-
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         // ----- TÍTULO -----
-        Text("Título", fontWeight = FontWeight.Bold)
-        OutlinedTextField(
-            value = title,
-            onValueChange = viewModel::onTitleChange,
-            isError = !isTitleValid,
-            placeholder = {
-                Text(
-                    text = "Las Bodas de Luis Alonso, Sonata Claro de Luna...",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if (!isTitleValid) {
-            Text(
-                text = "El título no puede estar vacío",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp)
+        item {
+            Text("Título", fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = title,
+                onValueChange = viewModel::onTitleChange,
+                isError = !isTitleValid,
+                placeholder = {
+                    Text(
+                        text = "Las Bodas de Luis Alonso, Sonata Claro de Luna...",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
+            if (!isTitleValid) {
+                Text(
+                    text = "El título no puede estar vacío",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
         }
 
         // ----- COMPOSITOR -----
-        Text("Compositor", fontWeight = FontWeight.Bold)
-        OutlinedTextField(
-            value = composer,
-            onValueChange = viewModel::onComposerChange,
-            isError = !isComposerValid,
-            placeholder = {
-                Text(
-                    text = "Manuel de Falla, Beethoven...",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        if (!isComposerValid) {
-            Text(
-                text = "El compositor no puede estar vacío",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp)
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Compositor", fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = composer,
+                onValueChange = viewModel::onComposerChange,
+                isError = !isComposerValid,
+                placeholder = {
+                    Text(
+                        text = "Manuel de Falla, Beethoven...",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
+            if (!isComposerValid) {
+                Text(
+                    text = "El compositor no puede estar vacío",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
         }
 
         // ----- URL DE VÍDEO -----
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Vídeo", fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.weight(1f))
-            Image(
-                painter = painterResource(id = R.drawable.youtube_completo),
-                contentDescription = "YouTube",
-                modifier = Modifier.size(48.dp)
-            )
-        }
-        OutlinedTextField(
-            value = videoUrl,
-            onValueChange = viewModel::onVideoUrlChange,
-            placeholder = {
-                Text(
-                    text = "URL de YouTube (opcional)",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Vídeo", fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.weight(1f))
+                Image(
+                    painter = painterResource(id = R.drawable.youtube_completo),
+                    contentDescription = "YouTube",
+                    modifier = Modifier.size(48.dp)
                 )
-            },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-            text = "Introduce un enlace de vídeo de YouTube",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 16.dp)
-        )
-
-        // ----- SECCIÓN DE ARCHIVOS -----
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Archivos", fontWeight = FontWeight.Bold)
-        if (!isFilesValid) {
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = videoUrl,
+                onValueChange = viewModel::onVideoUrlChange,
+                placeholder = {
+                    Text(
+                        text = "URL de YouTube (opcional)",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
             Text(
-                text = "Debe seleccionar al menos un archivo PDF",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error,
+                text = "Introduce un enlace de vídeo de YouTube",
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(start = 16.dp)
             )
         }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 300.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(instrumentosList) { instr ->
-                val fileSelected = instrumentFiles.containsKey(instr)
-                Card(
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                    colors = if (fileSelected) CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                    ) else CardDefaults.cardColors(),
+
+
+        // ----- SECCIÓN DE ARCHIVOS -----
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Archivos", fontWeight = FontWeight.Bold)
+            if (!isFilesValid) {
+                Text(
+                    text = "Debe seleccionar al menos un archivo PDF",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        items(Constants.instrumentosList) { instr ->
+            val fileSelected = instrumentFiles.containsKey(instr)
+            Card(
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                colors = if (fileSelected) CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                ) else CardDefaults.cardColors(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        currentInstrument = instr
+                        // Lanzamos el selector de PDFs
+                        pdfPicker.launch("application/pdf")
+                    }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            currentInstrument = instr
-                            // Lanzamos el selector de PDFs
-                            pdfPicker.launch("application/pdf")
-                        }
+                        .padding(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(
-                                id = ImageHelper.getInstrumentDrawable(
-                                    instr
-                                )
-                            ),
-                            contentDescription = instr,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = instr,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        if (fileSelected) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = "PDF seleccionado",
-                                tint = MaterialTheme.colorScheme.primary
+                    Image(
+                        painter = painterResource(
+                            id = ImageHelper.getInstrumentDrawable(
+                                instr
                             )
-                        }
+                        ),
+                        contentDescription = instr,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = instr,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (fileSelected) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "PDF seleccionado",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }

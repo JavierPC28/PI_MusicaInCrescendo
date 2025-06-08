@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.DIRECCION_MUSICAL
-import org.iesalandalus.pi_musicaincrescendo.data.repository.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.domain.model.UserProfile
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
 import java.text.SimpleDateFormat
 import java.util.Date

@@ -22,11 +22,12 @@ import androidx.core.net.toUri
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getInstrumentDrawable
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
@@ -38,21 +39,12 @@ fun HomeScreen() {
     val miembros by homeViewModel.userCount.collectAsState()
     val membersList by homeViewModel.members.collectAsState()
 
-    // Lista de instrumentos para ordenación
-    val instrumentosList = listOf(
-        "DIRECCIÓN MUSICAL", "FLAUTÍN", "FLAUTA", "OBOE", "CORNO INGLÉS",
-        "FAGOT", "CONTRAFAGOT", "REQUINTO", "CLARINETE", "CLARINETE BAJO",
-        "SAXO SOPRANO", "SAXO ALTO", "SAXO TENOR", "SAXO BARÍTONO",
-        "TROMPA", "FLISCORNO", "TROMPETA", "TROMBÓN", "TROMBÓN BAJO",
-        "BOMBARDINO", "TUBA", "VIOLONCHELO", "CONTRABAJO", "CAJA", "PERCUSIÓN",
-        "BOMBO", "PLATOS", "TIMBALES", "LÁMINAS", "BATERÍA"
-    )
-
     // Ordenamos miembros
     val sortedMembers = remember(membersList) {
-        membersList.sortedBy { profile ->
-            val principal = profile.instruments.firstOrNull().orEmpty()
-            instrumentosList.indexOf(principal).takeIf { it >= 0 } ?: instrumentosList.size
+        membersList.sortedBy { user ->
+            val principal = user.profile.instruments.firstOrNull().orEmpty()
+            Constants.instrumentosList.indexOf(principal).takeIf { it >= 0 }
+                ?: Constants.instrumentosList.size
         }
     }
 
@@ -176,7 +168,8 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            sortedMembers.forEach { profile ->
+            sortedMembers.forEach { user ->
+                val profile = user.profile
                 MemberRow(
                     displayName = profile.displayName,
                     gender = profile.gender,
