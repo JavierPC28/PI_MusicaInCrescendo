@@ -34,6 +34,9 @@ sealed class Screen(val route: String, val title: String) {
     object Notifications : Screen("notifications", "Notificaciones")
     object Profile : Screen("profile", "Perfil")
 
+    // Ruta para añadir un evento
+    object AddEvent : Screen("add_event", "Añadir Evento")
+
     // Ruta base para añadir/editar repertorio
     object AddEditRepertoire : Screen("add_repertoire", "Añadir obra") {
         fun routeWithArgs(workId: String? = null): String {
@@ -134,7 +137,7 @@ fun AppNavHost() {
                     ) {
                         when (screen) {
                             Screen.Home -> HomeScreen()
-                            Screen.Events -> EventsScreen()
+                            Screen.Events -> EventsScreen(navController)
                             Screen.Notifications -> NotificationsScreen()
                             Screen.Profile -> ProfileScreen()
                             else -> {/* ... */
@@ -208,6 +211,38 @@ fun AppNavHost() {
             arguments = listOf(navArgument("workId") { type = NavType.StringType })
         ) {
             RepertoireDetailScreen(navController = navController)
+        }
+
+        composable(Screen.AddEvent.route) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text("Añadir evento") },
+                        navigationIcon = {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Volver"
+                                )
+                            }
+                        },
+                        actions = {
+                            TextButton(onClick = {
+                            }) {
+                                Text("Guardar")
+                            }
+                        }
+                    )
+                }
+            ) { padding ->
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                ) {
+                    AddEventScreen()
+                }
+            }
         }
     }
 }
