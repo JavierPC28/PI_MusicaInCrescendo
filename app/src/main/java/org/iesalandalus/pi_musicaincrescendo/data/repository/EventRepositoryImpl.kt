@@ -1,0 +1,65 @@
+package org.iesalandalus.pi_musicaincrescendo.data.repository
+
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
+import org.iesalandalus.pi_musicaincrescendo.domain.repository.EventRepository
+import java.util.UUID
+
+class EventRepositoryImpl(
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+) : EventRepository {
+    override suspend fun addEvent(
+        type: String,
+        date: String,
+        startTime: String,
+        endTime: String,
+        location: String,
+        repertoire: Map<String, String>
+    ) {
+        val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        val eventRef = database.reference.child("events").child(uid).push()
+        val eventId = eventRef.key ?: UUID.randomUUID().toString()
+
+        val eventData = mapOf(
+            "type" to type,
+            "date" to date,
+            "startTime" to startTime,
+            "endTime" to endTime,
+            "location" to location,
+            "repertoireIds" to repertoire
+        )
+
+        eventRef.setValue(eventData).await()
+    }
+
+    override fun getEventsRealTime(): Flow<List<Event>> = callbackFlow {
+        val uid = auth.currentUser?.uid ?: run {
+            close(Exception("Usuario no autenticado"))
+            return@callbackFlow
+        }
+
+        val eventsRef = database.reference.child("events").child(uid)
+
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val eventList = snapshot.children.mapNotNull { dataSnapshot ->
+                    dataSnapshot.getValue(Event::class.java)?.copy(id = dataSnapshot.key ?: "")
+                }
+                trySend(eventList)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                close(error.toException())
+            }
+        }
+        eventsRef.addValueEventListener(listener)
+
+        awaitClose { eventsRef.removeEventListener(listener) }
+    }
+}

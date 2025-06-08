@@ -124,7 +124,6 @@ fun AppNavHost() {
 
         listOf(
             Screen.Home,
-            Screen.Events,
             Screen.Notifications,
             Screen.Profile
         ).forEach { screen ->
@@ -137,13 +136,25 @@ fun AppNavHost() {
                     ) {
                         when (screen) {
                             Screen.Home -> HomeScreen()
-                            Screen.Events -> EventsScreen(navController)
                             Screen.Notifications -> NotificationsScreen()
                             Screen.Profile -> ProfileScreen()
                             else -> {/* ... */
                             }
                         }
                     }
+                }
+            }
+        }
+
+        composable(Screen.Events.route) {
+            val eventsViewModel: EventsViewModel = viewModel()
+            MainScaffold(navController, Screen.Events.title) { padding ->
+                Box(
+                    Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+                ) {
+                    EventsScreen(navController, eventsViewModel)
                 }
             }
         }
@@ -214,6 +225,9 @@ fun AppNavHost() {
         }
 
         composable(Screen.AddEvent.route) {
+            val addEventViewModel: AddEventViewModel = viewModel()
+            val isFormValid by addEventViewModel.isFormValid.collectAsState()
+
             Scaffold(
                 topBar = {
                     TopAppBar(
@@ -227,8 +241,10 @@ fun AppNavHost() {
                             }
                         },
                         actions = {
-                            TextButton(onClick = {
-                            }) {
+                            TextButton(
+                                onClick = { addEventViewModel.onSaveEvent() },
+                                enabled = isFormValid
+                            ) {
                                 Text("Guardar")
                             }
                         }
@@ -240,7 +256,7 @@ fun AppNavHost() {
                         .padding(padding)
                         .fillMaxSize()
                 ) {
-                    AddEventScreen()
+                    AddEventScreen(navController = navController, viewModel = addEventViewModel)
                 }
             }
         }

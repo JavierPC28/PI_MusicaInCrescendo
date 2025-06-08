@@ -1,25 +1,248 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import org.iesalandalus.pi_musicaincrescendo.domain.model.EventType
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.AddEventViewModel
+import org.iesalandalus.pi_musicaincrescendo.common.components.TimePickerDialog
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
-/**
- * Vista para añadir un evento.
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEventScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun AddEventScreen(
+    navController: NavHostController,
+    viewModel: AddEventViewModel
+) {
+    val context = LocalContext.current
+
+    val eventType by viewModel.eventType.collectAsState()
+    val date by viewModel.date.collectAsState()
+    val startTime by viewModel.startTime.collectAsState()
+    val endTime by viewModel.endTime.collectAsState()
+    val location by viewModel.location.collectAsState()
+    val allRepertoire by viewModel.allRepertoire.collectAsState()
+    val selectedRepertoire by viewModel.selectedRepertoire.collectAsState()
+
+    val saveSuccess by viewModel.saveSuccess.collectAsState()
+    val saveError by viewModel.saveError.collectAsState()
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+
+    LaunchedEffect(saveSuccess) {
+        if (saveSuccess) {
+            Toast.makeText(context, "Evento guardado correctamente", Toast.LENGTH_SHORT).show()
+            navController.popBackStack()
+            viewModel.onNavigationHandled()
+        }
+    }
+
+    LaunchedEffect(saveError) {
+        saveError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.onNavigationHandled()
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Esta es la vista para añadir un evento",
-            fontSize = 20.sp
-        )
+        // Tipo de evento
+        item {
+            Text("Tipo de Evento", fontWeight = FontWeight.Bold)
+            Row(Modifier.fillMaxWidth()) {
+                EventType.entries.forEach { type ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable { viewModel.onEventTypeSelected(type) }
+                            .padding(end = 16.dp)
+                    ) {
+                        RadioButton(
+                            selected = eventType == type,
+                            onClick = { viewModel.onEventTypeSelected(type) }
+                        )
+                        Text(type.displayName)
+                    }
+                }
+            }
+        }
+
+        // Fecha y Hora
+        item {
+            Text("Fecha y Hora", fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = date,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Fecha") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true }
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = startTime,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Hora de inicio") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showStartTimePicker = true }
+                )
+                OutlinedTextField(
+                    value = endTime,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Hora de finalización") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { showEndTimePicker = true }
+                )
+            }
+        }
+
+        // Localización
+        item {
+            Text("Localización", fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = location,
+                onValueChange = viewModel::onLocationChange,
+                label = { Text("Ej: Centro Cultural Zaharagüi...") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // Obras del repertorio
+        item {
+            Text("Repertorio", fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+        }
+        if (allRepertoire.isEmpty()) {
+            item {
+                Text(
+                    "No hay obras en el repertorio. Añade alguna para poder crear un evento.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        } else {
+            items(allRepertoire) { work ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            viewModel.onRepertoireToggle(
+                                work,
+                                !selectedRepertoire.containsKey(work.id)
+                            )
+                        }
+                        .padding(vertical = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = selectedRepertoire.containsKey(work.id),
+                        onCheckedChange = {
+                            viewModel.onRepertoireToggle(work, it)
+                        }
+                    )
+                    Text(text = work.title, modifier = Modifier.padding(start = 8.dp))
+                }
+            }
+        }
+    }
+
+    // Date Picker Dialog
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val selectedDate = Calendar.getInstance().apply {
+                            timeInMillis = datePickerState.selectedDateMillis!!
+                        }
+                        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        viewModel.onDateSelected(formatter.format(selectedDate.time))
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // Start Time Picker Dialog
+    if (showStartTimePicker) {
+        val timePickerState = rememberTimePickerState()
+        TimePickerDialog(
+            onDismissRequest = { showStartTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val time =
+                            String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                        viewModel.onStartTimeSelected(time)
+                        showStartTimePicker = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartTimePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
+    }
+
+    // End Time Picker Dialog
+    if (showEndTimePicker) {
+        val timePickerState = rememberTimePickerState()
+        TimePickerDialog(
+            onDismissRequest = { showEndTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val time =
+                            String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                        viewModel.onEndTimeSelected(time)
+                        showEndTimePicker = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndTimePicker = false }) { Text("Cancelar") }
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
     }
 }
