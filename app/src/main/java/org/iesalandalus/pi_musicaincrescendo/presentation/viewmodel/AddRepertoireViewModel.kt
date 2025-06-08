@@ -45,6 +45,9 @@ class AddRepertoireViewModel(
     private val _saveError = MutableStateFlow<String?>(null)
     val saveError: StateFlow<String?> = _saveError
 
+    private val _shouldNavigateBack = MutableStateFlow(false)
+    val shouldNavigateBack: StateFlow<Boolean> = _shouldNavigateBack
+
     fun onTitleChange(new: String) {
         _title.value = new
         _isTitleValid.value = new.isNotBlank()
@@ -93,9 +96,16 @@ class AddRepertoireViewModel(
                     dateSaved = dateSaved
                 )
                 _saveSuccess.value = true
+                _shouldNavigateBack.value = true
             } catch (e: Exception) {
                 _saveError.value = e.message
             }
         }
+    }
+
+    fun onNavigationHandled() {
+        _shouldNavigateBack.value = false
+        _saveSuccess.value = false
+        _saveError.value = null
     }
 }

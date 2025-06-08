@@ -1,11 +1,13 @@
 package org.iesalandalus.pi_musicaincrescendo.domain.repository
 
 import android.net.Uri
+import kotlinx.coroutines.flow.Flow
+import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
 
 /**
  * Repositorio de repertorio.
  */
-fun interface RepertoireRepository {
+interface RepertoireRepository {
     suspend fun addRepertoire(
         title: String,
         composer: String,
@@ -13,4 +15,6 @@ fun interface RepertoireRepository {
         instrumentFiles: Map<String, Uri>,
         dateSaved: Long
     )
+
+    fun getRepertoireRealTime(): Flow<List<Repertoire>>
 }

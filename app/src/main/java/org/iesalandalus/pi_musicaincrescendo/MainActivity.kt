@@ -19,8 +19,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
-import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
-import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.MainViewModel
+import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.*
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.LoginScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.auth.RegisterScreen
 import org.iesalandalus.pi_musicaincrescendo.ui.main.*
@@ -147,6 +146,7 @@ fun AppNavHost() {
         }
 
         composable(Screen.AddRepertoire.route) {
+            val addRepertoireViewModel: AddRepertoireViewModel = viewModel()
             Scaffold(
                 topBar = {
                     TopAppBar(
@@ -160,7 +160,9 @@ fun AppNavHost() {
                             }
                         },
                         actions = {
-                            TextButton(onClick = { /* ... */ }) {
+                            TextButton(onClick = {
+                                addRepertoireViewModel.onSave()
+                            }) {
                                 Text("Guardar")
                             }
                         }
@@ -172,7 +174,10 @@ fun AppNavHost() {
                         .padding(padding)
                         .fillMaxSize()
                 ) {
-                    AddRepertoireScreen()
+                    AddRepertoireScreen(
+                        viewModel = addRepertoireViewModel,
+                        navController = navController
+                    )
                 }
             }
         }

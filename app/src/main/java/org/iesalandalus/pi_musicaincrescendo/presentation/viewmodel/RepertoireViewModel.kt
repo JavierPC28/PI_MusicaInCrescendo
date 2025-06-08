@@ -1,14 +1,22 @@
 package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import org.iesalandalus.pi_musicaincrescendo.data.repository.RepertoireRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
+import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetRepertoireUseCase
 
 /**
  * ViewModel para la pantalla de repertorio.
  */
-class RepertoireViewModel : ViewModel() {
+class RepertoireViewModel(
+    private val getRepertoireUseCase: GetRepertoireUseCase = GetRepertoireUseCase(
+        RepertoireRepositoryImpl()
+    )
+) : ViewModel() {
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText
 
@@ -22,6 +30,33 @@ class RepertoireViewModel : ViewModel() {
     // Opción de filtro seleccionada
     private val _selectedFilterOption = MutableStateFlow(FilterOption.TITULO)
     val selectedFilterOption: StateFlow<FilterOption> = _selectedFilterOption
+
+    private val _allWorks = MutableStateFlow<List<Repertoire>>(emptyList())
+
+    val repertoireList: StateFlow<List<Repertoire>> =
+        combine(
+            _allWorks,
+            searchText,
+        ) { works, text ->
+            if (text.isBlank()) {
+                works
+            } else {
+                works.filter {
+                    it.title.contains(text, ignoreCase = true) || it.composer.contains(
+                        text,
+                        ignoreCase = true
+                    )
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        viewModelScope.launch {
+            getRepertoireUseCase().collect { works ->
+                _allWorks.value = works
+            }
+        }
+    }
 
     fun onSearchTextChange(newText: String) {
         _searchText.value = newText
