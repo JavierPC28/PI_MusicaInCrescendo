@@ -2,11 +2,12 @@ package org.iesalandalus.pi_musicaincrescendo.ui.main
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import org.iesalandalus.pi_musicaincrescendo.R
+import org.iesalandalus.pi_musicaincrescendo.Screen
 import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
@@ -68,25 +70,44 @@ private fun FilterDialog(
 }
 
 @Composable
-private fun WorkItem(work: Repertoire) {
+private fun WorkItem(
+    work: Repertoire,
+    onEdit: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        Row(
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = work.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = work.composer,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = work.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = work.composer,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            IconButton(onClick = { onEdit(work.id) }) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar obra")
+            }
+            IconButton(onClick = { onDelete(work.id) }) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Eliminar obra",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
@@ -99,19 +120,39 @@ fun RepertoireScreen(
     navController: NavHostController,
     viewModel: RepertoireViewModel = viewModel()
 ) {
-    // Estados de UI desde ViewModel
     val searchText by viewModel.searchText.collectAsState()
     val isIconToggled by viewModel.isIconToggled.collectAsState()
     val showFilterDialog by viewModel.showFilterDialog.collectAsState()
     val selectedFilter by viewModel.selectedFilterOption.collectAsState()
     val repertoireList by viewModel.repertoireList.collectAsState()
+    val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onDismissDeleteDialog() },
+            title = { Text("Confirmar borrado") },
+            text = { Text("¿Estás seguro de que quieres eliminar esta obra? Esta acción no se puede deshacer.") },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.onConfirmDelete() },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.onDismissDeleteDialog() }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Encabezado con título y botón
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -124,7 +165,7 @@ fun RepertoireScreen(
             )
             Button(
                 onClick = {
-                    navController.navigate("add_repertoire")
+                    navController.navigate(Screen.AddEditRepertoire.routeWithArgs())
                 },
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -134,13 +175,11 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Fila de búsqueda e iconos
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Barra de búsqueda con ícono de borrado
             OutlinedTextField(
                 value = searchText,
                 onValueChange = viewModel::onSearchTextChange,
@@ -188,7 +227,6 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Diálogo de selección de filtro
         if (showFilterDialog) {
             FilterDialog(
                 selectedFilter = selectedFilter,
@@ -199,7 +237,6 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Contenido desplazable
         if (repertoireList.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -230,7 +267,15 @@ fun RepertoireScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(repertoireList) { work ->
-                    WorkItem(work)
+                    WorkItem(
+                        work = work,
+                        onEdit = { workId ->
+                            navController.navigate(Screen.AddEditRepertoire.routeWithArgs(workId))
+                        },
+                        onDelete = { workId ->
+                            viewModel.onDeleteRequest(workId)
+                        }
+                    )
                 }
             }
         }

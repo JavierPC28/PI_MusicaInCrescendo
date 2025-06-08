@@ -7,8 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
@@ -41,8 +40,9 @@ fun AddRepertoireScreen(
     val isTitleValid by viewModel.isTitleValid.collectAsState()
     val isComposerValid by viewModel.isComposerValid.collectAsState()
     val instrumentFiles by viewModel.instrumentFiles.collectAsState()
+    val existingInstruments by viewModel.existingInstruments.collectAsState()
     val isFilesValid by viewModel.isFilesValid.collectAsState()
-    val saveSuccess by viewModel.saveSuccess.collectAsState()
+    val saveSuccessMessage by viewModel.saveSuccess.collectAsState()
     val saveError by viewModel.saveError.collectAsState()
     val shouldNavigateBack by viewModel.shouldNavigateBack.collectAsState()
     val context = LocalContext.current
@@ -58,11 +58,11 @@ fun AddRepertoireScreen(
         }
     }
 
-    LaunchedEffect(saveSuccess) {
-        if (saveSuccess) {
+    LaunchedEffect(saveSuccessMessage) {
+        saveSuccessMessage?.let { message ->
             Toast.makeText(
                 context,
-                "Repertorio guardado correctamente",
+                message,
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -88,7 +88,6 @@ fun AddRepertoireScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
-        // ----- TÍTULO -----
         item {
             Text("Título", fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
@@ -116,7 +115,6 @@ fun AddRepertoireScreen(
             }
         }
 
-        // ----- COMPOSITOR -----
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text("Compositor", fontWeight = FontWeight.Bold)
@@ -145,7 +143,6 @@ fun AddRepertoireScreen(
             }
         }
 
-        // ----- URL DE VÍDEO -----
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Row(
@@ -182,7 +179,6 @@ fun AddRepertoireScreen(
         }
 
 
-        // ----- SECCIÓN DE ARCHIVOS -----
         item {
             Spacer(modifier = Modifier.height(16.dp))
             Text("Archivos", fontWeight = FontWeight.Bold)
@@ -198,7 +194,12 @@ fun AddRepertoireScreen(
         }
 
         items(Constants.instrumentosList) { instr ->
-            val fileSelected = instrumentFiles.containsKey(instr)
+            // Un fichero está "seleccionado" si se acaba de escoger (en instrumentFiles)
+            // o si ya existía al editar la obra (en existingInstruments)
+            val isNewlySelected = instrumentFiles.containsKey(instr)
+            val hadFileBefore = existingInstruments.contains(instr)
+            val fileSelected = isNewlySelected || hadFileBefore
+
             Card(
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 colors = if (fileSelected) CardDefaults.cardColors(
@@ -208,7 +209,6 @@ fun AddRepertoireScreen(
                     .fillMaxWidth()
                     .clickable {
                         currentInstrument = instr
-                        // Lanzamos el selector de PDFs
                         pdfPicker.launch("application/pdf")
                     }
             ) {

@@ -17,4 +17,16 @@ interface RepertoireRepository {
     )
 
     fun getRepertoireRealTime(): Flow<List<Repertoire>>
+
+    suspend fun getRepertoireById(id: String): Repertoire?
+
+    suspend fun updateRepertoire(
+        workId: String,
+        title: String,
+        composer: String,
+        videoUrl: String?,
+        instrumentFiles: Map<String, Uri>
+    )
+
+    suspend fun deleteRepertoire(id: String)
 }

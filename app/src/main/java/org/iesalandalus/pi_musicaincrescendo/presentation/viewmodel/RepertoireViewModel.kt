@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.RepertoireRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.DeleteRepertoireUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetRepertoireUseCase
 
 /**
@@ -14,6 +15,9 @@ import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetRepertoireUseCase
  */
 class RepertoireViewModel(
     private val getRepertoireUseCase: GetRepertoireUseCase = GetRepertoireUseCase(
+        RepertoireRepositoryImpl()
+    ),
+    private val deleteRepertoireUseCase: DeleteRepertoireUseCase = DeleteRepertoireUseCase(
         RepertoireRepositoryImpl()
     )
 ) : ViewModel() {
@@ -23,25 +27,39 @@ class RepertoireViewModel(
     private val _isIconToggled = MutableStateFlow(false)
     val isIconToggled: StateFlow<Boolean> = _isIconToggled
 
-    // Estado para mostrar u ocultar el diálogo de filtro
     private val _showFilterDialog = MutableStateFlow(false)
     val showFilterDialog: StateFlow<Boolean> = _showFilterDialog
 
-    // Opción de filtro seleccionada
     private val _selectedFilterOption = MutableStateFlow(FilterOption.TITULO)
     val selectedFilterOption: StateFlow<FilterOption> = _selectedFilterOption
 
     private val _allWorks = MutableStateFlow<List<Repertoire>>(emptyList())
 
+    // Estado para diálogo de borrado
+    private val _showDeleteDialog = MutableStateFlow(false)
+    val showDeleteDialog: StateFlow<Boolean> = _showDeleteDialog
+
+    private val _workToDeleteId = MutableStateFlow<String?>(null)
+
     val repertoireList: StateFlow<List<Repertoire>> =
         combine(
             _allWorks,
             searchText,
-        ) { works, text ->
+            _isIconToggled,
+            _selectedFilterOption
+        ) { works, text, isToggled, filter ->
+            // 1. Ordenar
+            val sortedWorks = when (filter) {
+                FilterOption.TITULO -> if (isToggled) works.sortedByDescending { it.title.lowercase() } else works.sortedBy { it.title.lowercase() }
+                FilterOption.COMPOSITOR -> if (isToggled) works.sortedByDescending { it.composer.lowercase() } else works.sortedBy { it.composer.lowercase() }
+                FilterOption.FECHA_PUBLICACION -> if (isToggled) works.sortedBy { it.dateSaved } else works.sortedByDescending { it.dateSaved }
+            }
+
+            // 2. Filtrar
             if (text.isBlank()) {
-                works
+                sortedWorks
             } else {
-                works.filter {
+                sortedWorks.filter {
                     it.title.contains(text, ignoreCase = true) || it.composer.contains(
                         text,
                         ignoreCase = true
@@ -66,18 +84,37 @@ class RepertoireViewModel(
         _isIconToggled.value = !_isIconToggled.value
     }
 
-    /**
-     * Muestra el diálogo de filtro.
-     */
     fun onFilterIconClick() {
         _showFilterDialog.value = true
     }
 
-    /**
-     * Procesa la opción seleccionada y cierra el diálogo.
-     */
     fun onFilterOptionSelected(option: FilterOption) {
         _selectedFilterOption.value = option
         _showFilterDialog.value = false
+    }
+
+    fun onDeleteRequest(workId: String) {
+        _workToDeleteId.value = workId
+        _showDeleteDialog.value = true
+    }
+
+    fun onConfirmDelete() {
+        _workToDeleteId.value?.let { id ->
+            viewModelScope.launch {
+                try {
+                    deleteRepertoireUseCase(id)
+                } catch (_: Exception) {
+                    // Para manejar errores en un futuro
+                } finally {
+                    _showDeleteDialog.value = false
+                    _workToDeleteId.value = null
+                }
+            }
+        }
+    }
+
+    fun onDismissDeleteDialog() {
+        _showDeleteDialog.value = false
+        _workToDeleteId.value = null
     }
 }

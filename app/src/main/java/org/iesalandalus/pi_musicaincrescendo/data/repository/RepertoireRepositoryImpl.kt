@@ -27,33 +27,26 @@ class RepertoireRepositoryImpl(
         instrumentFiles: Map<String, Uri>,
         dateSaved: Long
     ) {
-        // Obtenemos el UID del usuario actual.
         val firebaseUser = FirebaseAuth.getInstance().currentUser
             ?: throw Exception("Usuario no autenticado")
 
         val uid = firebaseUser.uid
 
-        // 1) Subimos cada PDF a Storage y obtenemos la URL de descarga.
         val instrumentUrls = mutableMapOf<String, String>()
         for ((instrument, uri) in instrumentFiles) {
-            // Se genera un ID aleatorio para el fichero
             val fileId = UUID.randomUUID().toString()
-            // Ruta en Storage: "repertoire/{uid}/{fileId}.pdf"
             val storageRef = storage.reference.child("repertoire/$uid/$fileId.pdf")
             storageRef.putFile(uri).await()
             val downloadUrl = storageRef.downloadUrl.await().toString()
             instrumentUrls[instrument] = downloadUrl
         }
 
-        // 2) Preparamos metadata de la obra
-        // Creamos un nodo único en Realtime Database: "repertoire/{uid}/{repertoireId}"
         val repertoireRef = database.reference
             .child("repertoire")
             .child(uid)
             .push()
         val repertoireId = repertoireRef.key ?: UUID.randomUUID().toString()
 
-        // Estructura que guardaremos
         val data = mapOf(
             "title" to title,
             "composer" to composer,
@@ -62,7 +55,6 @@ class RepertoireRepositoryImpl(
             "dateSaved" to dateSaved
         )
 
-        // 3) Guardamos metadata en Realtime Database
         database.reference
             .child("repertoire")
             .child(uid)
@@ -95,5 +87,78 @@ class RepertoireRepositoryImpl(
         repertoireRef.addValueEventListener(listener)
 
         awaitClose { repertoireRef.removeEventListener(listener) }
+    }
+
+    override suspend fun getRepertoireById(id: String): Repertoire? {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+            ?: throw Exception("Usuario no autenticado")
+        val snapshot = database.reference
+            .child("repertoire")
+            .child(uid)
+            .child(id)
+            .get()
+            .await()
+        return snapshot.getValue(Repertoire::class.java)?.copy(id = snapshot.key ?: "")
+    }
+
+    override suspend fun updateRepertoire(
+        workId: String,
+        title: String,
+        composer: String,
+        videoUrl: String?,
+        instrumentFiles: Map<String, Uri>
+    ) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+            ?: throw Exception("Usuario no autenticado")
+        val workRef = database.reference.child("repertoire").child(uid).child(workId)
+
+        // Borramos los archivos antiguos
+        val oldWork = getRepertoireById(workId)
+        oldWork?.instrumentFiles?.values?.forEach { url ->
+            try {
+                storage.getReferenceFromUrl(url).delete().await()
+            } catch (_: Exception) {
+                // Ignoramos si el archivo no existe
+            }
+        }
+
+        // Subimos los archivos nuevos
+        val newInstrumentUrls = mutableMapOf<String, String>()
+        for ((instrument, uri) in instrumentFiles) {
+            val fileId = UUID.randomUUID().toString()
+            val storageRef = storage.reference.child("repertoire/$uid/$fileId.pdf")
+            storageRef.putFile(uri).await()
+            val downloadUrl = storageRef.downloadUrl.await().toString()
+            newInstrumentUrls[instrument] = downloadUrl
+        }
+
+        // Actualizamos los datos en la base de datos
+        val updatedData = mapOf(
+            "title" to title,
+            "composer" to composer,
+            "videoUrl" to (videoUrl ?: ""),
+            "instrumentFiles" to newInstrumentUrls,
+            "dateSaved" to oldWork?.dateSaved
+        )
+        workRef.updateChildren(updatedData).await()
+    }
+
+    override suspend fun deleteRepertoire(id: String) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+            ?: throw Exception("Usuario no autenticado")
+        val workRef = database.reference.child("repertoire").child(uid).child(id)
+        val work = getRepertoireById(id)
+
+        // Borramos los archivos de Storage
+        work?.instrumentFiles?.values?.forEach { url ->
+            try {
+                storage.getReferenceFromUrl(url).delete().await()
+            } catch (_: Exception) {
+                // Ignoramos si el archivo no existe
+            }
+        }
+
+        // Borramos la entrada de la base de datos
+        workRef.removeValue().await()
     }
 }

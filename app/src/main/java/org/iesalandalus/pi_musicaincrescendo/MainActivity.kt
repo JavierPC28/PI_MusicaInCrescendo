@@ -14,7 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
@@ -31,7 +33,13 @@ sealed class Screen(val route: String, val title: String) {
     object Repertoire : Screen("repertoire", "Repertorio")
     object Notifications : Screen("notifications", "Notificaciones")
     object Profile : Screen("profile", "Perfil")
-    object AddRepertoire : Screen("add_repertoire", "Añadir obra")
+
+    // Ruta base para añadir/editar repertorio
+    object AddEditRepertoire : Screen("add_repertoire", "Añadir obra") {
+        fun routeWithArgs(workId: String? = null): String {
+            return if (workId != null) "add_repertoire?workId=$workId" else "add_repertoire"
+        }
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -70,7 +78,6 @@ fun AppNavHost() {
         "login"
 
     NavHost(navController = navController, startDestination = startRoute) {
-        // --- Login y Registro ---
         composable("login") {
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
@@ -105,7 +112,6 @@ fun AppNavHost() {
             }
         }
 
-        // --- Bottom navigation screens (except Repertoire) ---
         listOf(
             Screen.Home,
             Screen.Events,
@@ -132,7 +138,6 @@ fun AppNavHost() {
             }
         }
 
-        // --- Repertoire (necesita navController) ---
         composable(Screen.Repertoire.route) {
             MainScaffold(navController, Screen.Repertoire.title) { padding ->
                 Box(
@@ -145,12 +150,21 @@ fun AppNavHost() {
             }
         }
 
-        composable(Screen.AddRepertoire.route) {
+        composable(
+            route = "add_repertoire?workId={workId}",
+            arguments = listOf(navArgument("workId") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) {
+            val workId = it.arguments?.getString("workId")
+            val title = if (workId == null) "Añadir obra" else "Editar obra"
             val addRepertoireViewModel: AddRepertoireViewModel = viewModel()
+
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text(Screen.AddRepertoire.title) },
+                        title = { Text(title) },
                         navigationIcon = {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(
