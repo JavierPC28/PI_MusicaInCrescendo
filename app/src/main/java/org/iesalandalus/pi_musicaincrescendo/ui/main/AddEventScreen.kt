@@ -42,6 +42,10 @@ fun AddEventScreen(
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
 
+    val datePickerState = rememberDatePickerState()
+    val startTimePickerState = rememberTimePickerState()
+    val endTimePickerState = rememberTimePickerState()
+
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
             Toast.makeText(context, "Evento guardado correctamente", Toast.LENGTH_SHORT).show()
@@ -87,34 +91,43 @@ fun AddEventScreen(
         // Fecha y Hora
         item {
             Text("Fecha y Hora", fontWeight = FontWeight.Bold)
-            OutlinedTextField(
-                value = date,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Fecha") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showDatePicker = true }
-            )
+            Box(modifier = Modifier.clickable { showDatePicker = true }) {
+                OutlinedTextField(
+                    value = date,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Fecha") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
+                )
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = startTime,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Hora de inicio") },
+                Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { showStartTimePicker = true }
-                )
-                OutlinedTextField(
-                    value = endTime,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Hora de finalización") },
+                        .clickable { showStartTimePicker = true }) {
+                    OutlinedTextField(
+                        value = startTime,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Hora de inicio") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
+                    )
+                }
+                Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { showEndTimePicker = true }
-                )
+                        .clickable { showEndTimePicker = true }) {
+                    OutlinedTextField(
+                        value = endTime,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Hora de finalización") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = false
+                    )
+                }
             }
         }
 
@@ -169,7 +182,6 @@ fun AddEventScreen(
 
     // Date Picker Dialog
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState()
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
@@ -198,14 +210,17 @@ fun AddEventScreen(
 
     // Start Time Picker Dialog
     if (showStartTimePicker) {
-        val timePickerState = rememberTimePickerState()
         TimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
             confirmButton = {
                 TextButton(
                     onClick = {
                         val time =
-                            String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                            String.format(
+                                "%02d:%02d",
+                                startTimePickerState.hour,
+                                startTimePickerState.minute
+                            )
                         viewModel.onStartTimeSelected(time)
                         showStartTimePicker = false
                     }
@@ -217,20 +232,23 @@ fun AddEventScreen(
                 TextButton(onClick = { showStartTimePicker = false }) { Text("Cancelar") }
             }
         ) {
-            TimePicker(state = timePickerState)
+            TimePicker(state = startTimePickerState)
         }
     }
 
     // End Time Picker Dialog
     if (showEndTimePicker) {
-        val timePickerState = rememberTimePickerState()
         TimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },
             confirmButton = {
                 TextButton(
                     onClick = {
                         val time =
-                            String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                            String.format(
+                                "%02d:%02d",
+                                endTimePickerState.hour,
+                                endTimePickerState.minute
+                            )
                         viewModel.onEndTimeSelected(time)
                         showEndTimePicker = false
                     }
@@ -242,7 +260,7 @@ fun AddEventScreen(
                 TextButton(onClick = { showEndTimePicker = false }) { Text("Cancelar") }
             }
         ) {
-            TimePicker(state = timePickerState)
+            TimePicker(state = endTimePickerState)
         }
     }
 }
