@@ -40,6 +40,13 @@ sealed class Screen(val route: String, val title: String) {
             return if (workId != null) "add_repertoire?workId=$workId" else "add_repertoire"
         }
     }
+
+    // Ruta para el detalle del repertorio
+    object RepertoireDetail : Screen("repertoire_detail", "Detalle de la Obra") {
+        fun routeWithArgs(workId: String): String {
+            return "repertoire_detail/$workId"
+        }
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -194,6 +201,13 @@ fun AppNavHost() {
                     )
                 }
             }
+        }
+
+        composable(
+            route = "repertoire_detail/{workId}",
+            arguments = listOf(navArgument("workId") { type = NavType.StringType })
+        ) {
+            RepertoireDetailScreen(navController = navController)
         }
     }
 }

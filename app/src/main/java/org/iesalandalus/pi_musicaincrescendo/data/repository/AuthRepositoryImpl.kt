@@ -27,4 +27,6 @@ class AuthRepositoryImpl(
         val metadata = auth.currentUser?.metadata
         return metadata?.creationTimestamp?.let { Date(it) }
     }
+
+    override fun currentUserId(): String? = auth.currentUser?.uid
 }

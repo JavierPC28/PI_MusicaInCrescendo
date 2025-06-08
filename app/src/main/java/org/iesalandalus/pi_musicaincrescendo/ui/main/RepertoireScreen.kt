@@ -72,6 +72,7 @@ private fun FilterDialog(
 @Composable
 private fun WorkItem(
     work: Repertoire,
+    onViewDetails: (String) -> Unit,
     onEdit: (String) -> Unit,
     onDelete: (String) -> Unit
 ) {
@@ -85,7 +86,9 @@ private fun WorkItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onViewDetails(work.id) },
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
@@ -269,6 +272,9 @@ fun RepertoireScreen(
                 items(repertoireList) { work ->
                     WorkItem(
                         work = work,
+                        onViewDetails = { workId ->
+                            navController.navigate(Screen.RepertoireDetail.routeWithArgs(workId))
+                        },
                         onEdit = { workId ->
                             navController.navigate(Screen.AddEditRepertoire.routeWithArgs(workId))
                         },
