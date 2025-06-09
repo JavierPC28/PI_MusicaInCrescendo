@@ -4,8 +4,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material.icons.Icons
@@ -14,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -176,6 +176,26 @@ private fun InstrumentListSection(
     }
 }
 
+@Composable
+private fun LoadingOverlay() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .clickable(enabled = false, onClick = {}),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator(modifier = Modifier.size(64.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Guardando datos...",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge
+            )
+        }
+    }
+}
 
 /**
  * Pantalla para añadir una obra al repertorio.
@@ -197,6 +217,7 @@ fun AddRepertoireScreen(
     val saveSuccessMessage by viewModel.saveSuccess.collectAsState()
     val saveError by viewModel.saveError.collectAsState()
     val shouldNavigateBack by viewModel.shouldNavigateBack.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val context = LocalContext.current
     val lazyListState = rememberLazyListState()
 
@@ -224,43 +245,48 @@ fun AddRepertoireScreen(
         }
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        // Usamos LazyColumn para el contenedor principal para poder mezclar items y la lista de instrumentos
-        RepertoireFormSection(
-            viewModel,
-            title,
-            isTitleValid,
-            composer,
-            isComposerValid,
-            videoUrl
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Archivos", fontWeight = FontWeight.Bold)
-        if (!isFilesValid) {
-            Text(
-                text = "Debe seleccionar al menos un archivo PDF",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 16.dp)
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            RepertoireFormSection(
+                viewModel,
+                title,
+                isTitleValid,
+                composer,
+                isComposerValid,
+                videoUrl
             )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
 
-        Box(modifier = Modifier.weight(1f)) {
-            InstrumentListSection(
-                listState = lazyListState,
-                instrumentFiles = instrumentFiles,
-                existingInstruments = existingInstruments
-            ) { instrument ->
-                currentInstrument = instrument
-                pdfPicker.launch("application/pdf")
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Archivos", fontWeight = FontWeight.Bold)
+            if (!isFilesValid) {
+                Text(
+                    text = "Debe seleccionar al menos un archivo PDF",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp)
+                )
             }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(modifier = Modifier.weight(1f)) {
+                InstrumentListSection(
+                    listState = lazyListState,
+                    instrumentFiles = instrumentFiles,
+                    existingInstruments = existingInstruments
+                ) { instrument ->
+                    currentInstrument = instrument
+                    pdfPicker.launch("application/pdf")
+                }
+            }
+        }
+
+        if (isLoading) {
+            LoadingOverlay()
         }
     }
 }

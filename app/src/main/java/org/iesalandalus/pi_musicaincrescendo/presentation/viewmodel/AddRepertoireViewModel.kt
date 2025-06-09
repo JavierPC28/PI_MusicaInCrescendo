@@ -65,6 +65,9 @@ class AddRepertoireViewModel(
     private val _shouldNavigateBack = MutableStateFlow(false)
     val shouldNavigateBack: StateFlow<Boolean> = _shouldNavigateBack
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     init {
         workId?.let {
             loadWorkForEdit(it)
@@ -126,6 +129,7 @@ class AddRepertoireViewModel(
         if (!validateFields()) return
 
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val workTitle = _title.value.trim()
                 val workComposer = _composer.value.trim()
@@ -169,6 +173,8 @@ class AddRepertoireViewModel(
                 _shouldNavigateBack.value = true
             } catch (e: Exception) {
                 _saveError.value = e.message
+            } finally {
+                _isLoading.value = false
             }
         }
     }
