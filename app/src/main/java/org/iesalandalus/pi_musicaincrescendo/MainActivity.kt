@@ -34,17 +34,18 @@ sealed class Screen(val route: String, val title: String) {
     object Notifications : Screen("notifications", "Notificaciones")
     object Profile : Screen("profile", "Perfil")
 
-    // Ruta para añadir un evento
-    object AddEvent : Screen("add_event", "Añadir Evento")
+    object AddEvent : Screen("add_event", "Añadir Evento") {
+        fun routeWithArgs(eventId: String? = null): String {
+            return if (eventId != null) "add_event?eventId=$eventId" else "add_event"
+        }
+    }
 
-    // Ruta base para añadir/editar repertorio
     object AddEditRepertoire : Screen("add_repertoire", "Añadir obra") {
         fun routeWithArgs(workId: String? = null): String {
             return if (workId != null) "add_repertoire?workId=$workId" else "add_repertoire"
         }
     }
 
-    // Ruta para el detalle del repertorio
     object RepertoireDetail : Screen("repertoire_detail", "Detalle de la Obra") {
         fun routeWithArgs(workId: String): String {
             return "repertoire_detail/$workId"
@@ -224,14 +225,27 @@ fun AppNavHost() {
             RepertoireDetailScreen(navController = navController)
         }
 
-        composable(Screen.AddEvent.route) {
+        composable(
+            route = "add_event?eventId={eventId}",
+            arguments = listOf(navArgument("eventId") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId")
+            val title = if (eventId == null) "Añadir evento" else "Editar evento"
             val addEventViewModel: AddEventViewModel = viewModel()
+
+            LaunchedEffect(key1 = Unit) {
+                addEventViewModel.loadEventForEditing(eventId)
+            }
+
             val isFormValid by addEventViewModel.isFormValid.collectAsState()
 
             Scaffold(
                 topBar = {
                     TopAppBar(
-                        title = { Text("Añadir evento") },
+                        title = { Text(title) },
                         navigationIcon = {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(

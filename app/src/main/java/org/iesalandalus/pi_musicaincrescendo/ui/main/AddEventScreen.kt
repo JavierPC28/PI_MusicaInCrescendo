@@ -11,22 +11,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import org.iesalandalus.pi_musicaincrescendo.common.components.TimePickerDialog
 import org.iesalandalus.pi_musicaincrescendo.domain.model.EventType
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.AddEventViewModel
-import org.iesalandalus.pi_musicaincrescendo.common.components.TimePickerDialog
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
     navController: NavHostController,
-    viewModel: AddEventViewModel
+    viewModel: AddEventViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
+    val title by viewModel.title.collectAsState()
     val eventType by viewModel.eventType.collectAsState()
     val date by viewModel.date.collectAsState()
     val startTime by viewModel.startTime.collectAsState()
@@ -67,7 +68,17 @@ fun AddEventScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Tipo de evento
+        item {
+            Text("Título del Evento", fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = title,
+                onValueChange = viewModel::onTitleChange,
+                label = { Text("Ej: Concierto de Santa Cecilia") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+
         item {
             Text("Tipo de Evento", fontWeight = FontWeight.Bold)
             Row(Modifier.fillMaxWidth()) {
@@ -88,7 +99,6 @@ fun AddEventScreen(
             }
         }
 
-        // Fecha y Hora
         item {
             Text("Fecha y Hora", fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.clickable { showDatePicker = true }) {
@@ -131,7 +141,6 @@ fun AddEventScreen(
             }
         }
 
-        // Localización
         item {
             Text("Localización", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -142,7 +151,6 @@ fun AddEventScreen(
             )
         }
 
-        // Obras del repertorio
         item {
             Text("Repertorio", fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
@@ -180,7 +188,6 @@ fun AddEventScreen(
         }
     }
 
-    // Date Picker Dialog
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -211,7 +218,6 @@ fun AddEventScreen(
         }
     }
 
-    // Start Time Picker Dialog
     if (showStartTimePicker) {
         TimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
@@ -240,7 +246,6 @@ fun AddEventScreen(
         }
     }
 
-    // End Time Picker Dialog
     if (showEndTimePicker) {
         TimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },

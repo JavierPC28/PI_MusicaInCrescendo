@@ -5,6 +5,7 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
 
 interface EventRepository {
     suspend fun addEvent(
+        title: String,
         type: String,
         date: String,
         startTime: String,
@@ -14,4 +15,10 @@ interface EventRepository {
     )
 
     fun getEventsRealTime(): Flow<List<Event>>
+
+    suspend fun getEventById(eventId: String): Event?
+
+    suspend fun updateEvent(event: Event)
+
+    suspend fun deleteEvent(eventId: String)
 }

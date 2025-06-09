@@ -15,6 +15,7 @@ class EventRepositoryImpl(
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 ) : EventRepository {
     override suspend fun addEvent(
+        title: String,
         type: String,
         date: String,
         startTime: String,
@@ -26,6 +27,7 @@ class EventRepositoryImpl(
         val eventRef = database.reference.child("events").child(Constants.GROUP_ID).push()
 
         val eventData = mapOf(
+            "title" to title,
             "type" to type,
             "date" to date,
             "startTime" to startTime,
@@ -62,5 +64,46 @@ class EventRepositoryImpl(
         eventsRef.addValueEventListener(listener)
 
         awaitClose { eventsRef.removeEventListener(listener) }
+    }
+
+    override suspend fun getEventById(eventId: String): Event? {
+        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        val snapshot = database.reference
+            .child("events")
+            .child(Constants.GROUP_ID)
+            .child(eventId)
+            .get()
+            .await()
+        return snapshot.getValue(Event::class.java)?.copy(id = snapshot.key ?: "")
+    }
+
+    override suspend fun updateEvent(event: Event) {
+        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        val eventRef = database.reference
+            .child("events")
+            .child(Constants.GROUP_ID)
+            .child(event.id)
+
+        val eventData = mapOf(
+            "title" to event.title,
+            "type" to event.type,
+            "date" to event.date,
+            "startTime" to event.startTime,
+            "endTime" to event.endTime,
+            "location" to event.location,
+            "repertoireIds" to event.repertoireIds
+        )
+
+        eventRef.updateChildren(eventData).await()
+    }
+
+    override suspend fun deleteEvent(eventId: String) {
+        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        database.reference
+            .child("events")
+            .child(Constants.GROUP_ID)
+            .child(eventId)
+            .removeValue()
+            .await()
     }
 }
