@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,7 +34,7 @@ private fun FilterDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Filtrar por") },
+        title = { Text(text = "Ordenar por") },
         text = {
             Column {
                 FilterOption.entries.forEach { option ->
@@ -72,6 +69,7 @@ private fun FilterDialog(
 @Composable
 private fun WorkItem(
     work: Repertoire,
+    isDirector: Boolean,
     onViewDetails: (String) -> Unit,
     onEdit: (String) -> Unit,
     onDelete: (String) -> Unit
@@ -101,15 +99,18 @@ private fun WorkItem(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            IconButton(onClick = { onEdit(work.id) }) {
-                Icon(Icons.Default.Edit, contentDescription = "Editar obra")
-            }
-            IconButton(onClick = { onDelete(work.id) }) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Eliminar obra",
-                    tint = MaterialTheme.colorScheme.error
-                )
+            if (isDirector) {
+                IconButton(onClick = { onEdit(work.id) }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar obra")
+                }
+                IconButton(onClick = { onDelete(work.id) }) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Eliminar obra",
+                        tint = MaterialTheme.colorScheme.error
+
+                    )
+                }
             }
         }
     }
@@ -129,16 +130,24 @@ fun RepertoireScreen(
     val selectedFilter by viewModel.selectedFilterOption.collectAsState()
     val repertoireList by viewModel.repertoireList.collectAsState()
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
+    val isDirector by viewModel.isDirector.collectAsState()
 
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDeleteDialog() },
-            title = { Text("Confirmar borrado") },
-            text = { Text("¿Estás seguro de que quieres eliminar esta obra? Esta acción no se puede deshacer.") },
+            title =
+                { Text("Confirmar borrado") },
+            text = {
+                Text(
+                    "¿Estás seguro de que quieres eliminar esta obra? Esta acción no se puede deshacer."
+                )
+            },
             confirmButton = {
                 Button(
                     onClick = { viewModel.onConfirmDelete() },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
                     Text("Eliminar")
                 }
@@ -166,13 +175,15 @@ fun RepertoireScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            Button(
-                onClick = {
-                    navController.navigate(Screen.AddEditRepertoire.routeWithArgs())
-                },
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(text = "Añadir tema")
+            if (isDirector) {
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.AddEditRepertoire.routeWithArgs())
+                    },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "Añadir tema")
+                }
             }
         }
 
@@ -272,6 +283,7 @@ fun RepertoireScreen(
                 items(repertoireList) { work ->
                     WorkItem(
                         work = work,
+                        isDirector = isDirector,
                         onViewDetails = { workId ->
                             navController.navigate(Screen.RepertoireDetail.routeWithArgs(workId))
                         },

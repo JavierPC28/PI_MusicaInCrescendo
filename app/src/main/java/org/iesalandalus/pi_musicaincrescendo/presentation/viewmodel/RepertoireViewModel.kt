@@ -4,11 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.iesalandalus.pi_musicaincrescendo.data.repository.RepertoireRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.data.repository.*
 import org.iesalandalus.pi_musicaincrescendo.domain.model.FilterOption
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.DeleteRepertoireUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetRepertoireUseCase
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.*
 
 /**
  * ViewModel para la pantalla de repertorio.
@@ -19,7 +18,9 @@ class RepertoireViewModel(
     ),
     private val deleteRepertoireUseCase: DeleteRepertoireUseCase = DeleteRepertoireUseCase(
         RepertoireRepositoryImpl()
-    )
+    ),
+    private val authRepository: AuthRepository = AuthRepositoryImpl(),
+    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
 ) : ViewModel() {
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText
@@ -34,6 +35,9 @@ class RepertoireViewModel(
     val selectedFilterOption: StateFlow<FilterOption> = _selectedFilterOption
 
     private val _allWorks = MutableStateFlow<List<Repertoire>>(emptyList())
+
+    private val _isDirector = MutableStateFlow(false)
+    val isDirector: StateFlow<Boolean> = _isDirector.asStateFlow()
 
     // Estado para diálogo de borrado
     private val _showDeleteDialog = MutableStateFlow(false)
@@ -50,9 +54,17 @@ class RepertoireViewModel(
         ) { works, text, isToggled, filter ->
             // 1. Ordenar
             val sortedWorks = when (filter) {
-                FilterOption.TITULO -> if (isToggled) works.sortedByDescending { it.title.lowercase() } else works.sortedBy { it.title.lowercase() }
-                FilterOption.COMPOSITOR -> if (isToggled) works.sortedByDescending { it.composer.lowercase() } else works.sortedBy { it.composer.lowercase() }
-                FilterOption.FECHA_PUBLICACION -> if (isToggled) works.sortedBy { it.dateSaved } else works.sortedByDescending { it.dateSaved }
+                FilterOption.TITULO -> if (isToggled) works.sortedByDescending {
+                    it.title.lowercase()
+                } else works.sortedBy { it.title.lowercase() }
+
+                FilterOption.COMPOSITOR -> if (isToggled) works.sortedByDescending {
+                    it.composer.lowercase()
+                } else works.sortedBy { it.composer.lowercase() }
+
+                FilterOption.FECHA_PUBLICACION -> if (isToggled) works.sortedBy {
+                    it.dateSaved
+                } else works.sortedByDescending { it.dateSaved }
             }
 
             // 2. Filtrar
@@ -72,6 +84,20 @@ class RepertoireViewModel(
         viewModelScope.launch {
             getRepertoireUseCase().collect { works ->
                 _allWorks.value = works
+            }
+        }
+        loadUserRole()
+    }
+
+    private fun loadUserRole() {
+        viewModelScope.launch {
+            authRepository.currentUserId()?.let { uid ->
+                try {
+                    val userProfile = userUseCases.getUserProfile(uid)
+                    _isDirector.value = userProfile.isDirector
+                } catch (_: Exception) {
+                    // Para manejar errores en un futuro
+                }
             }
         }
     }

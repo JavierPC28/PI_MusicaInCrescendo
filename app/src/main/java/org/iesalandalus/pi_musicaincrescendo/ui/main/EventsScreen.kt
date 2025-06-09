@@ -22,6 +22,7 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel) {
     val events by viewModel.events.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val isDirector by viewModel.isDirector.collectAsState()
 
     Column(
         modifier = Modifier
@@ -38,13 +39,15 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel) {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            Button(
-                onClick = {
-                    navController.navigate(Screen.AddEvent.route)
-                },
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(text = "Añadir evento")
+            if (isDirector) {
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.AddEvent.route)
+                    },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(text = "Añadir evento")
+                }
             }
         }
 

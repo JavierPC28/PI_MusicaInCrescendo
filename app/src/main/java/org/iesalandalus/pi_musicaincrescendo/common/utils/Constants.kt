@@ -1,6 +1,7 @@
 package org.iesalandalus.pi_musicaincrescendo.common.utils
 
 object Constants {
+    const val GROUP_ID = "default_group"
     const val DIRECCION_MUSICAL = "DIRECCIÓN MUSICAL"
     const val MAX_INSTRUMENTS = 3
     const val MAX_INSTRUMENTS_DIRECTOR = 2
