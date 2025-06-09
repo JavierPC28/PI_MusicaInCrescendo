@@ -9,6 +9,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -137,7 +138,25 @@ fun AppNavHost() {
             Screen.Profile
         ).forEach { screen ->
             composable(screen.route) {
-                MainScaffold(navController, screen.title) { padding ->
+                val notificationsViewModel: NotificationsViewModel = viewModel()
+                val isDirector by notificationsViewModel.isDirector.collectAsState()
+
+                val topBarActions: @Composable RowScope.() -> Unit =
+                    if (screen == Screen.Notifications && isDirector) {
+                        {
+                            IconButton(onClick = { notificationsViewModel.onDeleteRequest() }) {
+                                Icon(Icons.Default.Delete, "Eliminar notificaciones")
+                            }
+                        }
+                    } else {
+                        {}
+                    }
+
+                MainScaffold(
+                    navController = navController,
+                    title = screen.title,
+                    actions = topBarActions
+                ) { padding ->
                     Box(
                         Modifier
                             .padding(padding)
@@ -145,7 +164,7 @@ fun AppNavHost() {
                     ) {
                         when (screen) {
                             Screen.Home -> HomeScreen()
-                            Screen.Notifications -> NotificationsScreen()
+                            Screen.Notifications -> NotificationsScreen(viewModel = notificationsViewModel)
                             Screen.Profile -> ProfileScreen()
                             else -> {/* ... */
                             }
@@ -296,6 +315,7 @@ fun AppNavHost() {
 fun MainScaffold(
     navController: NavHostController,
     title: String,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -390,7 +410,8 @@ fun MainScaffold(
             topBar = {
                 TopBarWithDrawer(
                     title = title,
-                    onMenuClick = { scope.launch { drawerState.open() } }
+                    onMenuClick = { scope.launch { drawerState.open() } },
+                    actions = actions
                 )
             },
             bottomBar = { BottomNavigationBar(navController) },

@@ -19,7 +19,10 @@ class EventsViewModel(
         EventRepositoryImpl()
     ),
     private val authRepository: AuthRepository = AuthRepositoryImpl(),
-    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
+    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl()),
+    private val addNotificationUseCase: AddNotificationUseCase = AddNotificationUseCase(
+        NotificationRepositoryImpl()
+    )
 ) : ViewModel() {
 
     private val _allEvents = MutableStateFlow<List<Event>>(emptyList())
@@ -39,6 +42,7 @@ class EventsViewModel(
     private val _showDeleteDialog = MutableStateFlow(false)
     val showDeleteDialog: StateFlow<Boolean> = _showDeleteDialog
     private val _eventToDeleteId = MutableStateFlow<String?>(null)
+    private var eventToDeleteTitle: String? = null
 
     val currentUserId: String? = authRepository.currentUserId()
 
@@ -114,8 +118,9 @@ class EventsViewModel(
         _activeFilter.value = filterType
     }
 
-    fun onDeleteRequest(eventId: String) {
+    fun onDeleteRequest(eventId: String, eventTitle: String) {
         _eventToDeleteId.value = eventId
+        eventToDeleteTitle = eventTitle
         _showDeleteDialog.value = true
     }
 
@@ -124,11 +129,15 @@ class EventsViewModel(
             viewModelScope.launch {
                 try {
                     deleteEventUseCase(id)
+                    eventToDeleteTitle?.let { title ->
+                        addNotificationUseCase("Se ha cancelado el evento \"$title\"")
+                    }
                 } catch (e: Exception) {
                     _error.value = "Error al eliminar el evento: ${e.message}"
                 } finally {
                     _showDeleteDialog.value = false
                     _eventToDeleteId.value = null
+                    eventToDeleteTitle = null
                 }
             }
         }
@@ -137,6 +146,7 @@ class EventsViewModel(
     fun onDismissDeleteDialog() {
         _showDeleteDialog.value = false
         _eventToDeleteId.value = null
+        eventToDeleteTitle = null
     }
 
     fun updateAttendance(eventId: String, status: String) {

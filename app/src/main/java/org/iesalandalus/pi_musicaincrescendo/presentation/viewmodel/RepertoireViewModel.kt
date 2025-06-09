@@ -20,7 +20,10 @@ class RepertoireViewModel(
         RepertoireRepositoryImpl()
     ),
     private val authRepository: AuthRepository = AuthRepositoryImpl(),
-    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
+    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl()),
+    private val addNotificationUseCase: AddNotificationUseCase = AddNotificationUseCase(
+        NotificationRepositoryImpl()
+    )
 ) : ViewModel() {
     private val _searchText = MutableStateFlow("")
     val searchText: StateFlow<String> = _searchText
@@ -44,6 +47,7 @@ class RepertoireViewModel(
     val showDeleteDialog: StateFlow<Boolean> = _showDeleteDialog
 
     private val _workToDeleteId = MutableStateFlow<String?>(null)
+    private var workToDelete: Repertoire? = null
 
     val repertoireList: StateFlow<List<Repertoire>> =
         combine(
@@ -123,8 +127,9 @@ class RepertoireViewModel(
         _showFilterDialog.value = false
     }
 
-    fun onDeleteRequest(workId: String) {
-        _workToDeleteId.value = workId
+    fun onDeleteRequest(work: Repertoire) {
+        _workToDeleteId.value = work.id
+        workToDelete = work
         _showDeleteDialog.value = true
     }
 
@@ -133,11 +138,15 @@ class RepertoireViewModel(
             viewModelScope.launch {
                 try {
                     deleteRepertoireUseCase(id)
+                    workToDelete?.let { work ->
+                        addNotificationUseCase("Se ha eliminado la obra \"${work.title}\" del repertorio")
+                    }
                 } catch (_: Exception) {
                     // Para manejar errores en un futuro
                 } finally {
                     _showDeleteDialog.value = false
                     _workToDeleteId.value = null
+                    workToDelete = null
                 }
             }
         }

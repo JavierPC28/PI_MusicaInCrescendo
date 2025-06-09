@@ -172,7 +172,7 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
                                 navController.navigate(Screen.AddEvent.routeWithArgs(event.id))
                             },
                             onDelete = {
-                                viewModel.onDeleteRequest(event.id)
+                                viewModel.onDeleteRequest(event.id, event.title)
                             },
                             onUpdateAttendance = { eventId, status ->
                                 viewModel.updateAttendance(eventId, status)

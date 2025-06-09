@@ -5,6 +5,7 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.iesalandalus.pi_musicaincrescendo.data.repository.NotificationRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.data.repository.RepertoireRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.*
 
@@ -21,6 +22,8 @@ class AddRepertoireViewModel(
         GetRepertoireByIdUseCase(RepertoireRepositoryImpl())
     private val updateRepertoireUseCase: UpdateRepertoireUseCase =
         UpdateRepertoireUseCase(RepertoireRepositoryImpl())
+    private val addNotificationUseCase: AddNotificationUseCase =
+        AddNotificationUseCase(NotificationRepositoryImpl())
 
     private val workId: String? = savedStateHandle["workId"]
 
@@ -121,16 +124,18 @@ class AddRepertoireViewModel(
 
         viewModelScope.launch {
             try {
+                val workTitle = _title.value.trim()
                 if (workId == null) {
                     // --- CREAR NUEVA OBRA ---
                     val dateSaved = System.currentTimeMillis()
                     addRepertoireUseCase(
-                        title = _title.value.trim(),
+                        title = workTitle,
                         composer = _composer.value.trim(),
                         videoUrl = _videoUrl.value.trim().ifEmpty { null },
                         instrumentFiles = _instrumentFiles.value,
                         dateSaved = dateSaved
                     )
+                    addNotificationUseCase("Se ha añadido la obra \"$workTitle\" al repertorio")
                     _saveSuccess.value = "Repertorio guardado correctamente"
                 } else {
                     if (_instrumentFiles.value.isEmpty() && _existingInstruments.value.isNotEmpty()) {
@@ -141,11 +146,12 @@ class AddRepertoireViewModel(
 
                     updateRepertoireUseCase(
                         workId = workId,
-                        title = _title.value.trim(),
+                        title = workTitle,
                         composer = _composer.value.trim(),
                         videoUrl = _videoUrl.value.trim().ifEmpty { null },
                         instrumentFiles = _instrumentFiles.value
                     )
+                    addNotificationUseCase("Se ha actualizado la obra \"$workTitle\" en el repertorio")
                     _saveSuccess.value = "Repertorio actualizado correctamente"
                 }
 

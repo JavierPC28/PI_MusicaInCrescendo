@@ -72,7 +72,7 @@ private fun WorkItem(
     isDirector: Boolean,
     onViewDetails: (String) -> Unit,
     onEdit: (String) -> Unit,
-    onDelete: (String) -> Unit
+    onDelete: (Repertoire) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -103,7 +103,7 @@ private fun WorkItem(
                 IconButton(onClick = { onEdit(work.id) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar obra")
                 }
-                IconButton(onClick = { onDelete(work.id) }) {
+                IconButton(onClick = { onDelete(work) }) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Eliminar obra",

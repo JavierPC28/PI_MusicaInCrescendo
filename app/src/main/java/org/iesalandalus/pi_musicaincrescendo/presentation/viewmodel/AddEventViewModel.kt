@@ -4,15 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.iesalandalus.pi_musicaincrescendo.data.repository.EventRepositoryImpl
-import org.iesalandalus.pi_musicaincrescendo.data.repository.RepertoireRepositoryImpl
-import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
-import org.iesalandalus.pi_musicaincrescendo.domain.model.EventType
-import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.AddEventUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetEventByIdUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetRepertoireUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateEventUseCase
+import org.iesalandalus.pi_musicaincrescendo.data.repository.*
+import org.iesalandalus.pi_musicaincrescendo.domain.model.*
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.*
 
 class AddEventViewModel(
     private val addEventUseCase: AddEventUseCase = AddEventUseCase(EventRepositoryImpl()),
@@ -20,7 +14,10 @@ class AddEventViewModel(
         RepertoireRepositoryImpl()
     ),
     private val getEventByIdUseCase: GetEventByIdUseCase = GetEventByIdUseCase(EventRepositoryImpl()),
-    private val updateEventUseCase: UpdateEventUseCase = UpdateEventUseCase(EventRepositoryImpl())
+    private val updateEventUseCase: UpdateEventUseCase = UpdateEventUseCase(EventRepositoryImpl()),
+    private val addNotificationUseCase: AddNotificationUseCase = AddNotificationUseCase(
+        NotificationRepositoryImpl()
+    )
 ) : ViewModel() {
 
     private var eventId: String? = null
@@ -177,9 +174,10 @@ class AddEventViewModel(
 
         viewModelScope.launch {
             try {
+                val eventTitle = _title.value.trim()
                 if (eventId == null) {
                     addEventUseCase(
-                        title = _title.value.trim(),
+                        title = eventTitle,
                         description = _description.value.trim().ifEmpty { null },
                         type = _eventType.value!!.displayName,
                         date = _date.value,
@@ -189,10 +187,11 @@ class AddEventViewModel(
                         coordinates = _coordinates.value.trim().ifEmpty { null },
                         repertoire = _selectedRepertoire.value
                     )
+                    addNotificationUseCase("Se ha creado el evento \"$eventTitle\"")
                 } else {
                     val updatedEvent = Event(
                         id = eventId!!,
-                        title = _title.value.trim(),
+                        title = eventTitle,
                         description = _description.value.trim().ifEmpty { null },
                         type = _eventType.value!!.displayName,
                         date = _date.value,
@@ -204,6 +203,7 @@ class AddEventViewModel(
                         asistencias = originalEvent?.asistencias ?: emptyMap()
                     )
                     updateEventUseCase(updatedEvent)
+                    addNotificationUseCase("Se ha actualizado el evento \"$eventTitle\"")
                 }
                 _saveSuccess.value = true
             } catch (e: Exception) {
