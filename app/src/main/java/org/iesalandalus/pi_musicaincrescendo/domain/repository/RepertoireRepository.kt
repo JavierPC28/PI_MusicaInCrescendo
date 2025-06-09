@@ -19,7 +19,6 @@ interface RepertoireRepository {
     fun getRepertoireRealTime(): Flow<List<Repertoire>>
 
     suspend fun getRepertoireById(id: String): Repertoire?
-
     suspend fun updateRepertoire(
         workId: String,
         title: String,
@@ -31,4 +30,6 @@ interface RepertoireRepository {
     suspend fun deleteRepertoire(id: String)
 
     suspend fun repertoireExists(title: String, composer: String): Boolean
+
+    suspend fun repertoireExistsForUpdate(workId: String, title: String, composer: String): Boolean
 }

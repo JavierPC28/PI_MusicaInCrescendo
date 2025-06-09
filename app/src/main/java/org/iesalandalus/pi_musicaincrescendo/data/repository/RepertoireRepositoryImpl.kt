@@ -117,33 +117,28 @@ class RepertoireRepositoryImpl(
         FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val workRef = database.reference.child("repertoire").child(Constants.GROUP_ID).child(workId)
 
-        // Borramos los archivos antiguos
         val oldWork = getRepertoireById(workId)
-        oldWork?.instrumentFiles?.values?.forEach { url ->
-            try {
-                storage.getReferenceFromUrl(url).delete().await()
-            } catch (_: Exception) {
-                // Ignoramos si el archivo no existe
-            }
-        }
+        val finalInstrumentUrls = oldWork?.instrumentFiles?.toMutableMap() ?: mutableMapOf()
 
-        // Subimos los archivos nuevos
-        val newInstrumentUrls = mutableMapOf<String, String>()
         for ((instrument, uri) in instrumentFiles) {
+            oldWork?.instrumentFiles?.get(instrument)?.let { oldUrl ->
+                try {
+                    storage.getReferenceFromUrl(oldUrl).delete().await()
+                } catch (_: Exception) {/* ... */
+                }
+            }
             val fileId = UUID.randomUUID().toString()
             val storageRef = storage.reference.child("repertoire/${Constants.GROUP_ID}/$fileId.pdf")
 
             storageRef.putFile(uri).await()
             val downloadUrl = storageRef.downloadUrl.await().toString()
-            newInstrumentUrls[instrument] = downloadUrl
+            finalInstrumentUrls[instrument] = downloadUrl
         }
-
-        // Actualizamos los datos en la base de datos
         val updatedData = mapOf(
             "title" to title,
             "composer" to composer,
             "videoUrl" to (videoUrl ?: ""),
-            "instrumentFiles" to newInstrumentUrls,
+            "instrumentFiles" to finalInstrumentUrls,
             "dateSaved" to oldWork?.dateSaved
         )
         workRef.updateChildren(updatedData).await()
@@ -154,16 +149,12 @@ class RepertoireRepositoryImpl(
         val workRef = database.reference.child("repertoire").child(Constants.GROUP_ID).child(id)
         val work = getRepertoireById(id)
 
-        // Borramos los archivos de Storage
         work?.instrumentFiles?.values?.forEach { url ->
             try {
                 storage.getReferenceFromUrl(url).delete().await()
-            } catch (_: Exception) {
-                // Ignoramos si el archivo no existe
+            } catch (_: Exception) {/* ... */
             }
         }
-
-        // Borramos la entrada de la base de datos
         workRef.removeValue().await()
     }
 
@@ -174,6 +165,23 @@ class RepertoireRepositoryImpl(
         return snapshot.children.any { dataSnapshot ->
             val work = dataSnapshot.getValue(Repertoire::class.java)
             work?.title?.equals(title, ignoreCase = true) == true &&
+                    work.composer.equals(composer, ignoreCase = true)
+        }
+    }
+
+    override suspend fun repertoireExistsForUpdate(
+        workId: String,
+        title: String,
+        composer: String
+    ): Boolean {
+        val repertoireRef = database.reference.child("repertoire").child(Constants.GROUP_ID)
+        val snapshot = repertoireRef.get().await()
+
+        return snapshot.children.any { dataSnapshot ->
+            val id = dataSnapshot.key
+            val work = dataSnapshot.getValue(Repertoire::class.java)
+            id != workId &&
+                    work?.title?.equals(title, ignoreCase = true) == true &&
                     work.composer.equals(composer, ignoreCase = true)
         }
     }

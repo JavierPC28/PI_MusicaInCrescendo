@@ -27,6 +27,8 @@ class AddRepertoireViewModel(
         CheckRepertoireExistsUseCase(repertoireRepository)
     private val addNotificationUseCase: AddNotificationUseCase =
         AddNotificationUseCase(NotificationRepositoryImpl())
+    private val checkRepertoireExistsForUpdateUseCase: CheckRepertoireExistsForUpdateUseCase =
+        CheckRepertoireExistsForUpdateUseCase(repertoireRepository)
 
     private val workId: String? = savedStateHandle["workId"]
 
@@ -48,7 +50,6 @@ class AddRepertoireViewModel(
     private val _instrumentFiles = MutableStateFlow<Map<String, Uri>>(emptyMap())
     val instrumentFiles: StateFlow<Map<String, Uri>> = _instrumentFiles
 
-    // Almacena los instrumentos que ya tenían un fichero al editar
     private val _existingInstruments = MutableStateFlow<Set<String>>(emptySet())
     val existingInstruments: StateFlow<Set<String>> = _existingInstruments
 
@@ -106,13 +107,12 @@ class AddRepertoireViewModel(
         _instrumentFiles.value = _instrumentFiles.value.toMutableMap().apply {
             put(instrument, uri)
         }
-        _isFilesValid.value = true // Se valida en el guardado
+        _isFilesValid.value = true
     }
 
     private fun validateFields(): Boolean {
         val tituloOk = _title.value.isNotBlank()
         val compositorOk = _composer.value.isNotBlank()
-        // Para edición, puede que no se suban nuevos ficheros pero sí haya existentes
         val filesOk = _instrumentFiles.value.isNotEmpty() || _existingInstruments.value.isNotEmpty()
 
         _isTitleValid.value = tituloOk
@@ -128,9 +128,10 @@ class AddRepertoireViewModel(
         viewModelScope.launch {
             try {
                 val workTitle = _title.value.trim()
+                val workComposer = _composer.value.trim()
+
                 if (workId == null) {
-                    // --- CREAR NUEVA OBRA ---
-                    val exists = checkRepertoireExistsUseCase(workTitle, _composer.value.trim())
+                    val exists = checkRepertoireExistsUseCase(workTitle, workComposer)
                     if (exists) {
                         _saveError.value = "Ya existe una obra con el mismo título y compositor."
                         return@launch
@@ -139,7 +140,7 @@ class AddRepertoireViewModel(
                     val dateSaved = System.currentTimeMillis()
                     addRepertoireUseCase(
                         title = workTitle,
-                        composer = _composer.value.trim(),
+                        composer = workComposer,
                         videoUrl = _videoUrl.value.trim().ifEmpty { null },
                         instrumentFiles = _instrumentFiles.value,
                         dateSaved = dateSaved
@@ -147,16 +148,17 @@ class AddRepertoireViewModel(
                     addNotificationUseCase("Se ha añadido la obra \"$workTitle\" al repertorio")
                     _saveSuccess.value = "Repertorio guardado correctamente"
                 } else {
-                    if (_instrumentFiles.value.isEmpty() && _existingInstruments.value.isNotEmpty()) {
-                        _saveError.value =
-                            "Para editar, debe seleccionar al menos un fichero nuevo."
+                    val exists =
+                        checkRepertoireExistsForUpdateUseCase(workId, workTitle, workComposer)
+                    if (exists) {
+                        _saveError.value = "Ya existe otra obra con el mismo título y compositor."
                         return@launch
                     }
 
                     updateRepertoireUseCase(
                         workId = workId,
                         title = workTitle,
-                        composer = _composer.value.trim(),
+                        composer = workComposer,
                         videoUrl = _videoUrl.value.trim().ifEmpty { null },
                         instrumentFiles = _instrumentFiles.value
                     )
