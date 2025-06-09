@@ -154,7 +154,7 @@ fun AddRepertoireScreen(
                 Image(
                     painter = painterResource(id = R.drawable.youtube),
                     contentDescription = "YouTube",
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(40.dp)
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))

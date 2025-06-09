@@ -16,12 +16,15 @@ class AddRepertoireViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val repertoireRepository = RepertoireRepositoryImpl()
     private val addRepertoireUseCase: AddRepertoireUseCase =
-        AddRepertoireUseCase(RepertoireRepositoryImpl())
+        AddRepertoireUseCase(repertoireRepository)
     private val getRepertoireByIdUseCase: GetRepertoireByIdUseCase =
-        GetRepertoireByIdUseCase(RepertoireRepositoryImpl())
+        GetRepertoireByIdUseCase(repertoireRepository)
     private val updateRepertoireUseCase: UpdateRepertoireUseCase =
-        UpdateRepertoireUseCase(RepertoireRepositoryImpl())
+        UpdateRepertoireUseCase(repertoireRepository)
+    private val checkRepertoireExistsUseCase: CheckRepertoireExistsUseCase =
+        CheckRepertoireExistsUseCase(repertoireRepository)
     private val addNotificationUseCase: AddNotificationUseCase =
         AddNotificationUseCase(NotificationRepositoryImpl())
 
@@ -127,6 +130,12 @@ class AddRepertoireViewModel(
                 val workTitle = _title.value.trim()
                 if (workId == null) {
                     // --- CREAR NUEVA OBRA ---
+                    val exists = checkRepertoireExistsUseCase(workTitle, _composer.value.trim())
+                    if (exists) {
+                        _saveError.value = "Ya existe una obra con el mismo título y compositor."
+                        return@launch
+                    }
+
                     val dateSaved = System.currentTimeMillis()
                     addRepertoireUseCase(
                         title = workTitle,

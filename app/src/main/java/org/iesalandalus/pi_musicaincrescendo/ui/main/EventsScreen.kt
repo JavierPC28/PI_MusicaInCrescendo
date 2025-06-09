@@ -1,5 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -208,7 +209,7 @@ fun EventCard(
     }
 
     val isPast = parseEventDateTime(event.date, event.endTime)?.before(Date()) == true
-    val cardAlpha = if (isPast) 0.6f else 1f
+    val cardAlpha = if (isPast) 0.7f else 1f
 
     fun formatDate(dateStr: String, timeStr: String): String {
         return try {
@@ -223,15 +224,23 @@ fun EventCard(
         }
     }
 
+    val cardBorder = if (isPast) {
+        null
+    } else {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .alpha(cardAlpha)
             .clickable { onViewDetails(event.id) },
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = cardBorder,
         colors = CardDefaults.cardColors(
-            containerColor = if (isPast) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
+            containerColor = if (isPast) Color.LightGray
+            else MaterialTheme.colorScheme.surfaceContainer
         )
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -243,7 +252,7 @@ fun EventCard(
             ) {
                 Text(
                     text = formatDate(event.date, event.startTime),
-                    color = Color.Red,
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )

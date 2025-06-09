@@ -172,6 +172,22 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Divider(modifier = Modifier.weight(1f))
+                Text(
+                    text = "O",
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Divider(modifier = Modifier.weight(1f))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Botón de inicio de sesión con Google
             GoogleSignInButton(
                 onClick = { startGoogleSignIn() }

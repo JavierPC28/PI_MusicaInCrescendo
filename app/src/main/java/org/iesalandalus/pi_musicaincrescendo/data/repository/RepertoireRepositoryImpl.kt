@@ -166,4 +166,15 @@ class RepertoireRepositoryImpl(
         // Borramos la entrada de la base de datos
         workRef.removeValue().await()
     }
+
+    override suspend fun repertoireExists(title: String, composer: String): Boolean {
+        val repertoireRef = database.reference.child("repertoire").child(Constants.GROUP_ID)
+        val snapshot = repertoireRef.get().await()
+
+        return snapshot.children.any { dataSnapshot ->
+            val work = dataSnapshot.getValue(Repertoire::class.java)
+            work?.title?.equals(title, ignoreCase = true) == true &&
+                    work.composer.equals(composer, ignoreCase = true)
+        }
+    }
 }

@@ -29,4 +29,6 @@ interface RepertoireRepository {
     )
 
     suspend fun deleteRepertoire(id: String)
+
+    suspend fun repertoireExists(title: String, composer: String): Boolean
 }
