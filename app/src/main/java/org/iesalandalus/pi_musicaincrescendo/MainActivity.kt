@@ -320,8 +320,12 @@ fun MainScaffold(
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    // Instanciamos todos los ViewModels que puedan tener listeners activos
     val mainViewModel: MainViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
+    val eventsViewModel: EventsViewModel = viewModel()
+    val repertoireViewModel: RepertoireViewModel = viewModel()
+    val notificationsViewModel: NotificationsViewModel = viewModel()
     val activity = LocalActivity.current
     val context = LocalContext.current
 
@@ -393,7 +397,14 @@ fun MainScaffold(
             ModalDrawerSheet {
                 DrawerContent(
                     onLogout = {
+                        // Cancelamos la recolección de datos de todos los listeners
+                        // para evitar crashes por permisos al desloguear.
                         homeViewModel.cancelarRecoleccion()
+                        eventsViewModel.cancelarRecoleccion()
+                        repertoireViewModel.cancelarRecoleccion()
+                        notificationsViewModel.cancelarRecoleccion()
+
+                        // Procedemos con el logout y la navegación
                         mainViewModel.logout()
                         navController.navigate("login") { popUpTo(0) }
                     },

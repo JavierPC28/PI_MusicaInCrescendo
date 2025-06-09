@@ -4,6 +4,7 @@ import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -83,7 +84,10 @@ class RepertoireRepositoryImpl(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
+                cancel(
+                    message = "Firebase listener cancelled at repertoire",
+                    cause = error.toException()
+                )
             }
         }
         repertoireRef.addValueEventListener(listener)

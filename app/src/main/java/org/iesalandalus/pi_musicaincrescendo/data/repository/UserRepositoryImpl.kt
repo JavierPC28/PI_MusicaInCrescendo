@@ -3,6 +3,7 @@ package org.iesalandalus.pi_musicaincrescendo.data.repository
 import android.net.Uri
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -102,7 +103,10 @@ class UserRepositoryImpl(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
+                cancel(
+                    message = "Firebase listener cancelled at user count",
+                    cause = error.toException()
+                )
             }
         }
         usersRef.addValueEventListener(listener)
@@ -123,7 +127,10 @@ class UserRepositoryImpl(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
+                cancel(
+                    message = "Firebase listener cancelled at users",
+                    cause = error.toException()
+                )
             }
         }
         usersRef.addValueEventListener(listener)

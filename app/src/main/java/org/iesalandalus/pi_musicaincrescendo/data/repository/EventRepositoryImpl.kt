@@ -2,6 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.data.repository
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -63,7 +64,10 @@ class EventRepositoryImpl(
             }
 
             override fun onCancelled(error: DatabaseError) {
-                close(error.toException())
+                cancel(
+                    message = "Firebase listener cancelled at events",
+                    cause = error.toException()
+                )
             }
         }
         eventsRef.addValueEventListener(listener)

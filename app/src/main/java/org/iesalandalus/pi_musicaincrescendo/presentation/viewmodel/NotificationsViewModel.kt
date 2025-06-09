@@ -2,6 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,8 @@ class NotificationsViewModel(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private var notificationsJob: Job? = null
+
 
     init {
         loadUserRole()
@@ -54,7 +57,8 @@ class NotificationsViewModel(
     }
 
     private fun loadNotifications() {
-        viewModelScope.launch {
+        notificationsJob?.cancel()
+        notificationsJob = viewModelScope.launch {
             getNotificationsUseCase().collect { notificationList ->
                 _notifications.value = notificationList
             }
@@ -79,6 +83,11 @@ class NotificationsViewModel(
 
     fun onDismissDeleteDialog() {
         _showDeleteDialog.value = false
+    }
+
+    fun cancelarRecoleccion() {
+        notificationsJob?.cancel()
+        notificationsJob = null
     }
 
     fun getFormattedDate(timestamp: Long): String {

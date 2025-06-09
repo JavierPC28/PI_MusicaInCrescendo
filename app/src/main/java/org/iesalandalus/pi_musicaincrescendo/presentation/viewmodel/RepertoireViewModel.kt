@@ -2,6 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.*
@@ -38,6 +39,7 @@ class RepertoireViewModel(
     val selectedFilterOption: StateFlow<FilterOption> = _selectedFilterOption
 
     private val _allWorks = MutableStateFlow<List<Repertoire>>(emptyList())
+    private var repertoireJob: Job? = null
 
     private val _isDirector = MutableStateFlow(false)
     val isDirector: StateFlow<Boolean> = _isDirector.asStateFlow()
@@ -85,7 +87,13 @@ class RepertoireViewModel(
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
-        viewModelScope.launch {
+        loadRepertoire()
+        loadUserRole()
+    }
+
+    private fun loadRepertoire() {
+        repertoireJob?.cancel()
+        repertoireJob = viewModelScope.launch {
             try {
                 getRepertoireUseCase().collect { works ->
                     _allWorks.value = works
@@ -94,7 +102,6 @@ class RepertoireViewModel(
                 // Para manejar errores en un futuro
             }
         }
-        loadUserRole()
     }
 
     private fun loadUserRole() {
@@ -155,5 +162,10 @@ class RepertoireViewModel(
     fun onDismissDeleteDialog() {
         _showDeleteDialog.value = false
         _workToDeleteId.value = null
+    }
+
+    fun cancelarRecoleccion() {
+        repertoireJob?.cancel()
+        repertoireJob = null
     }
 }

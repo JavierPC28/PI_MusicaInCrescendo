@@ -2,6 +2,7 @@ package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.*
@@ -26,6 +27,7 @@ class EventsViewModel(
 ) : ViewModel() {
 
     private val _allEvents = MutableStateFlow<List<Event>>(emptyList())
+    private var eventsJob: Job? = null
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -100,7 +102,8 @@ class EventsViewModel(
     }
 
     private fun loadEvents() {
-        viewModelScope.launch {
+        eventsJob?.cancel()
+        eventsJob = viewModelScope.launch {
             _isLoading.value = true
             try {
                 getEventsUseCase().collect {
@@ -161,5 +164,10 @@ class EventsViewModel(
                 _error.value = "Error al actualizar asistencia: ${e.message}"
             }
         }
+    }
+
+    fun cancelarRecoleccion() {
+        eventsJob?.cancel()
+        eventsJob = null
     }
 }
