@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +23,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.*
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
@@ -174,7 +176,8 @@ fun HomeScreen() {
                     displayName = profile.displayName,
                     gender = profile.gender,
                     isDirector = profile.isDirector,
-                    instrument = profile.instruments.firstOrNull().orEmpty()
+                    instrument = profile.instruments.firstOrNull().orEmpty(),
+                    photoUrl = profile.photoUrl
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -241,7 +244,8 @@ private fun MemberRow(
     displayName: String,
     gender: String,
     isDirector: Boolean,
-    instrument: String
+    instrument: String,
+    photoUrl: String?
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -250,10 +254,12 @@ private fun MemberRow(
             .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
             .padding(8.dp)
     ) {
-        val imageRes = ImageHelper.getProfileImage(gender, isDirector)
-        Image(
-            painter = painterResource(id = imageRes),
+        AsyncImage(
+            model = photoUrl,
+            placeholder = painterResource(id = ImageHelper.getProfileImage(gender, isDirector)),
+            error = painterResource(id = ImageHelper.getProfileImage(gender, isDirector)),
             contentDescription = displayName,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(8.dp))

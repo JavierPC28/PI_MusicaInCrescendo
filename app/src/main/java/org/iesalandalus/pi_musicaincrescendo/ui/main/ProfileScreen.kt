@@ -107,7 +107,9 @@ fun ProfileScreen() {
         }
 
         if (uiState is ProfileViewModel.UiState.Loading) {
-            CircularProgressIndicator()
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator()
+            }
         }
     }
 }

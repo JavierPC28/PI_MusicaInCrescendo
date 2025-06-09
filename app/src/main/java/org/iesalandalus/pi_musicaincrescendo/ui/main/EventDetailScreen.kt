@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +26,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
@@ -313,14 +315,22 @@ private fun MemberRow(user: User) {
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageRes =
-                org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getProfileImage(
-                    user.profile.gender,
-                    user.profile.isDirector
-                )
-            androidx.compose.foundation.Image(
-                painter = androidx.compose.ui.res.painterResource(id = imageRes),
+            AsyncImage(
+                model = user.profile.photoUrl,
                 contentDescription = user.profile.displayName,
+                placeholder = painterResource(
+                    id = org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getProfileImage(
+                        gender = user.profile.gender,
+                        isDirector = user.profile.isDirector
+                    )
+                ),
+                error = painterResource(
+                    id = org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getProfileImage(
+                        gender = user.profile.gender,
+                        isDirector = user.profile.isDirector
+                    )
+                ),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))

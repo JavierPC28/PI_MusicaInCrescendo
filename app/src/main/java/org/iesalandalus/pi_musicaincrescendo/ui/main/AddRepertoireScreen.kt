@@ -152,7 +152,7 @@ fun AddRepertoireScreen(
                 Text("Vídeo", fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.weight(1f))
                 Image(
-                    painter = painterResource(id = R.drawable.youtube_completo),
+                    painter = painterResource(id = R.drawable.youtube),
                     contentDescription = "YouTube",
                     modifier = Modifier.size(48.dp)
                 )
