@@ -78,8 +78,7 @@ class AddEventViewModel(
         val repertoireValue = values[6] as Map<*, *>
         val coordinatesValue = values[7] as String
 
-        val coordinatesRegex =
-            """^-?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*-?((1[0-7]|[1-9])?\d(\.\d+)?|180(\.0+)?)$""".toRegex()
+        val coordinatesRegex = """^-?\d{1,3}(\.\d+)?,\s*-?\d{1,3}(\.\d+)?$""".toRegex()
 
         titleValue.isNotBlank() &&
                 type != null &&
@@ -176,7 +175,7 @@ class AddEventViewModel(
             try {
                 val eventTitle = _title.value.trim()
                 if (eventId == null) {
-                    addEventUseCase(
+                    val params = AddEventParams(
                         title = eventTitle,
                         description = _description.value.trim().ifEmpty { null },
                         type = _eventType.value!!.displayName,
@@ -187,6 +186,7 @@ class AddEventViewModel(
                         coordinates = _coordinates.value.trim().ifEmpty { null },
                         repertoire = _selectedRepertoire.value
                     )
+                    addEventUseCase(params)
                     addNotificationUseCase("Se ha creado el evento \"$eventTitle\"")
                 } else {
                     val updatedEvent = Event(

@@ -98,7 +98,6 @@ private fun EventDetailContent(
     val tabs = listOf("Detalles", "Repertorio", "Miembros")
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Título del evento
         Text(
             text = event.title,
             style = MaterialTheme.typography.headlineSmall,
@@ -107,7 +106,6 @@ private fun EventDetailContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Pestañas de selección
         TabRow(selectedTabIndex = uiState.selectedTab) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -119,7 +117,6 @@ private fun EventDetailContent(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Contenido de la pestaña seleccionada
         when (uiState.selectedTab) {
             0 -> DetailsTab(event)
             1 -> RepertoireTab(uiState.repertoire)
@@ -146,9 +143,13 @@ private fun DetailsTab(event: Event) {
         return try {
             val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             val date = inputFormat.parse(dateStr)
-            val outputFormat =
-                SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", Locale("es", "ES"))
-            outputFormat.format(date).replaceFirstChar { it.uppercase() }
+            if (date != null) {
+                val outputFormat =
+                    SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", Locale("es", "ES"))
+                outputFormat.format(date).replaceFirstChar { it.uppercase() }
+            } else {
+                dateStr
+            }
         } catch (_: Exception) {
             dateStr
         }

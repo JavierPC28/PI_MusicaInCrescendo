@@ -15,6 +15,11 @@ class EventRepositoryImpl(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
 ) : EventRepository {
+
+    private companion object {
+        const val ERROR_USER_NOT_AUTHENTICATED = "Usuario no autenticado"
+    }
+
     override suspend fun addEvent(
         title: String,
         description: String?,
@@ -26,7 +31,7 @@ class EventRepositoryImpl(
         coordinates: String?,
         repertoire: Map<String, String>
     ) {
-        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val eventRef = database.reference.child("events").child(Constants.GROUP_ID).push()
 
         val eventData = mutableMapOf<String, Any>(
@@ -47,7 +52,7 @@ class EventRepositoryImpl(
 
     override fun getEventsRealTime(): Flow<List<Event>> = callbackFlow {
         auth.currentUser?.uid ?: run {
-            close(Exception("Usuario no autenticado"))
+            close(Exception(ERROR_USER_NOT_AUTHENTICATED))
             return@callbackFlow
         }
 
@@ -76,7 +81,7 @@ class EventRepositoryImpl(
     }
 
     override suspend fun getEventById(eventId: String): Event? {
-        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val snapshot = database.reference
             .child("events")
             .child(Constants.GROUP_ID)
@@ -87,7 +92,7 @@ class EventRepositoryImpl(
     }
 
     override suspend fun updateEvent(event: Event) {
-        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val eventRef = database.reference
             .child("events")
             .child(Constants.GROUP_ID)
@@ -110,7 +115,7 @@ class EventRepositoryImpl(
     }
 
     override suspend fun deleteEvent(eventId: String) {
-        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         database.reference
             .child("events")
             .child(Constants.GROUP_ID)
@@ -120,7 +125,7 @@ class EventRepositoryImpl(
     }
 
     override suspend fun updateAttendance(eventId: String, userId: String, status: String) {
-        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         database.reference
             .child("events")
             .child(Constants.GROUP_ID)

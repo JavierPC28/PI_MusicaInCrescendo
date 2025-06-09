@@ -2,26 +2,28 @@ package org.iesalandalus.pi_musicaincrescendo.domain.usecase
 
 import org.iesalandalus.pi_musicaincrescendo.domain.repository.EventRepository
 
+data class AddEventParams(
+    val title: String,
+    val description: String?,
+    val type: String,
+    val date: String,
+    val startTime: String,
+    val endTime: String,
+    val location: String,
+    val coordinates: String?,
+    val repertoire: Map<String, String>
+)
+
 class AddEventUseCase(private val repo: EventRepository) {
-    suspend operator fun invoke(
-        title: String,
-        description: String?,
-        type: String,
-        date: String,
-        startTime: String,
-        endTime: String,
-        location: String,
-        coordinates: String?,
-        repertoire: Map<String, String>
-    ) = repo.addEvent(
-        title,
-        description,
-        type,
-        date,
-        startTime,
-        endTime,
-        location,
-        coordinates,
-        repertoire
+    suspend operator fun invoke(params: AddEventParams) = repo.addEvent(
+        title = params.title,
+        description = params.description,
+        type = params.type,
+        date = params.date,
+        startTime = params.startTime,
+        endTime = params.endTime,
+        location = params.location,
+        coordinates = params.coordinates,
+        repertoire = params.repertoire
     )
 }

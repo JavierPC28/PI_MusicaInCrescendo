@@ -10,7 +10,7 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
 import org.iesalandalus.pi_musicaincrescendo.domain.model.EventFilterType
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.*
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 class EventsViewModel(
@@ -48,11 +48,10 @@ class EventsViewModel(
 
     val currentUserId: String? = authRepository.currentUserId()
 
-    private fun parseEventDateTime(event: Event): Calendar? {
+    private fun parseEventDateTime(event: Event): Date? {
         return try {
             val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            val date = format.parse("${event.date} ${event.endTime}")
-            Calendar.getInstance().apply { time = date }
+            format.parse("${event.date} ${event.endTime}")
         } catch (_: Exception) {
             null
         }
@@ -68,17 +67,16 @@ class EventsViewModel(
             EventFilterType.ENSAYO -> events.filter { it.type == "Ensayo" }
         }
 
-        val now = Calendar.getInstance()
+        val now = Date()
         val (pastEvents, futureEvents) = filtered.partition {
             val eventDate = parseEventDateTime(it)
             eventDate != null && eventDate.before(now)
         }
 
-        futureEvents.sortedBy { parseEventDateTime(it) } + pastEvents.sortedByDescending {
-            parseEventDateTime(
-                it
-            )
-        }
+        val sortedFuture = futureEvents.sortedBy { parseEventDateTime(it)?.time ?: 0 }
+        val sortedPast = pastEvents.sortedByDescending { parseEventDateTime(it)?.time ?: 0 }
+
+        sortedFuture + sortedPast
 
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

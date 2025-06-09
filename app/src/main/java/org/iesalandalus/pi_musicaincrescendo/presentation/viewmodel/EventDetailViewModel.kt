@@ -17,6 +17,8 @@ import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetEventByIdUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetRepertoireByIdUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
 
+private const val ATTENDANCE_STATUS_ATTENDING = "IRÉ"
+
 data class EventDetailUiState(
     val isLoading: Boolean = true,
     val event: Event? = null,
@@ -62,7 +64,8 @@ class EventDetailViewModel(
                     getRepertoireByIdUseCase(repertoireId)
                 }
 
-                val attendingUserIds = event.asistencias.filter { it.value == "IRÉ" }.keys
+                val attendingUserIds =
+                    event.asistencias.filter { it.value == ATTENDANCE_STATUS_ATTENDING }.keys
                 val memberList = attendingUserIds.mapNotNull { userId ->
                     try {
                         val profile = userUseCases.getUserProfile(userId)

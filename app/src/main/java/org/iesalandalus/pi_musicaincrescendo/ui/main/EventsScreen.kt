@@ -27,6 +27,10 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.EventsViewMo
 import java.text.SimpleDateFormat
 import java.util.*
 
+private const val ATTENDANCE_STATUS_ATTENDING = "IRÉ"
+private const val ATTENDANCE_STATUS_NOT_ATTENDING = "NO IRÉ"
+
+
 @Composable
 fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = viewModel()) {
     val events by viewModel.filteredEvents.collectAsState()
@@ -38,25 +42,9 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
     val currentUserId by remember { mutableStateOf(viewModel.currentUserId) }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { viewModel.onDismissDeleteDialog() },
-            title = { Text("Confirmar borrado") },
-            text = { Text("¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.") },
-            confirmButton = {
-                Button(
-                    onClick = { viewModel.onConfirmDelete() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.onDismissDeleteDialog() }) {
-                    Text("Cancelar")
-                }
-            }
+        DeleteEventDialog(
+            onConfirm = { viewModel.onConfirmDelete() },
+            onDismiss = { viewModel.onDismissDeleteDialog() }
         )
     }
 
@@ -65,105 +53,62 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Conciertos y ensayos",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-            if (isDirector) {
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.AddEvent.routeWithArgs())
-                    },
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(text = "Añadir evento")
-                }
-            }
+        EventsHeader(isDirector = isDirector) {
+            navController.navigate(Screen.AddEvent.routeWithArgs())
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            EventFilterType.entries.forEach { filter ->
-                Button(
-                    onClick = { viewModel.setFilter(filter) },
-                    modifier = Modifier.weight(1f),
-                    colors = if (activeFilter == filter) {
-                        ButtonDefaults.buttonColors()
-                    } else {
-                        ButtonDefaults.outlinedButtonColors()
-                    },
-                    border = if (activeFilter != filter) {
-                        ButtonDefaults.outlinedButtonBorder
-                    } else {
-                        null
-                    }
-                ) {
-                    Text(filter.displayName)
-                }
-            }
+        EventFilters(activeFilter = activeFilter) { filter ->
+            viewModel.setFilter(filter)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        EventsContent(
+            modifier = Modifier.weight(1f),
+            isLoading = isLoading,
+            error = error,
+            events = events,
+            isDirector = isDirector,
+            currentUserId = currentUserId,
+            navController = navController,
+            viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+private fun EventsContent(
+    modifier: Modifier = Modifier,
+    isLoading: Boolean,
+    error: String?,
+    events: List<Event>,
+    isDirector: Boolean,
+    currentUserId: String?,
+    navController: NavHostController,
+    viewModel: EventsViewModel
+) {
+    Box(modifier = modifier.fillMaxWidth()) {
         when {
             isLoading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
 
             error != null -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = error!!, color = MaterialTheme.colorScheme.error)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
 
             events.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.caja_vacia),
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "No hay ningún evento programado",
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                EmptyState()
             }
 
             else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(events) { event ->
                         EventCard(
                             event = event,
@@ -183,6 +128,145 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
                             }
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventsHeader(isDirector: Boolean, onAddEvent: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Conciertos y ensayos",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        if (isDirector) {
+            Button(
+                onClick = onAddEvent,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(text = "Añadir evento")
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventFilters(
+    activeFilter: EventFilterType,
+    onFilterSelected: (EventFilterType) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        EventFilterType.entries.forEach { filter ->
+            val isSelected = activeFilter == filter
+            Button(
+                onClick = { onFilterSelected(filter) },
+                modifier = Modifier.weight(1f),
+                colors = if (isSelected) ButtonDefaults.buttonColors()
+                else ButtonDefaults.outlinedButtonColors(),
+                border = if (!isSelected) ButtonDefaults.outlinedButtonBorder(enabled = true)
+                else null
+            ) {
+                Text(filter.displayName)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(
+                painter = painterResource(id = R.drawable.caja_vacia),
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "No hay ningún evento programado",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeleteEventDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar borrado") },
+        text = { Text("¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer.") },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Eliminar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+private fun AttendanceSection(
+    status: String?,
+    isPast: Boolean,
+    onUpdate: (String) -> Unit
+) {
+    when (status) {
+        ATTENDANCE_STATUS_ATTENDING -> Text(
+            text = ATTENDANCE_STATUS_ATTENDING,
+            color = Color(0xFF2E7D32),
+            fontWeight = FontWeight.Bold
+        )
+
+        ATTENDANCE_STATUS_NOT_ATTENDING -> Text(
+            text = ATTENDANCE_STATUS_NOT_ATTENDING,
+            color = MaterialTheme.colorScheme.error,
+            fontWeight = FontWeight.Bold
+        )
+
+        else -> {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = { onUpdate(ATTENDANCE_STATUS_NOT_ATTENDING) },
+                    enabled = !isPast
+                ) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = "No iré",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+                IconButton(
+                    onClick = { onUpdate(ATTENDANCE_STATUS_ATTENDING) },
+                    enabled = !isPast
+                ) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = "Iré",
+                        tint = Color(0xFF2E7D32)
+                    )
                 }
             }
         }
@@ -216,9 +300,13 @@ fun EventCard(
             val dateTimeStr = "$dateStr $timeStr"
             val dateTimeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
             val dateTime = dateTimeFormat.parse(dateTimeStr)
-            val outputFormat =
-                SimpleDateFormat("EEEE, d 'de' MMMM 'a las' HH:mm", Locale("es", "ES"))
-            outputFormat.format(dateTime).uppercase()
+            if (dateTime != null) {
+                val outputFormat =
+                    SimpleDateFormat("EEEE, d 'de' MMMM 'a las' HH:mm", Locale("es", "ES"))
+                outputFormat.format(dateTime).uppercase()
+            } else {
+                "${event.date} a las ${event.startTime}"
+            }
         } catch (_: Exception) {
             "${event.date} a las ${event.startTime}"
         }
@@ -301,51 +389,16 @@ fun EventCard(
                 }
             }
 
-            val attendanceStatus = currentUserId?.let { event.asistencias[it] }
-
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 16.dp, bottom = 16.dp)
             ) {
-                when (attendanceStatus) {
-                    "IRÉ" -> Text(
-                        text = "IRÉ",
-                        color = Color(0xFF2E7D32),
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    "NO IRÉ" -> Text(
-                        text = "NO IRÉ",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    else -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(
-                                onClick = { onUpdateAttendance(event.id, "NO IRÉ") },
-                                enabled = !isPast
-                            ) {
-                                Icon(
-                                    Icons.Filled.Close,
-                                    contentDescription = "No iré",
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                            IconButton(
-                                onClick = { onUpdateAttendance(event.id, "IRÉ") },
-                                enabled = !isPast
-                            ) {
-                                Icon(
-                                    Icons.Filled.Check,
-                                    contentDescription = "Iré",
-                                    tint = Color(0xFF2E7D32)
-                                )
-                            }
-                        }
-                    }
-                }
+                AttendanceSection(
+                    status = currentUserId?.let { event.asistencias[it] },
+                    isPast = isPast,
+                    onUpdate = { status -> onUpdateAttendance(event.id, status) }
+                )
             }
         }
     }

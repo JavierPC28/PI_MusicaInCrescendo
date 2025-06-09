@@ -61,8 +61,8 @@ private fun FilterDialog(
                 }
             }
         },
-        confirmButton = { /* Sin botón de confirmar */ },
-        dismissButton = { /* Sin botón de cancelar */ }
+        confirmButton = { },
+        dismissButton = { }
     )
 }
 
@@ -116,6 +116,59 @@ private fun WorkItem(
     }
 }
 
+@Composable
+private fun RepertoireList(
+    modifier: Modifier = Modifier,
+    repertoireList: List<Repertoire>,
+    isDirector: Boolean,
+    navController: NavHostController,
+    viewModel: RepertoireViewModel
+) {
+    Box(modifier = modifier) {
+        if (repertoireList.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.caja_vacia),
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "No hay ningún tema disponible",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(repertoireList) { work ->
+                    WorkItem(
+                        work = work,
+                        isDirector = isDirector,
+                        onViewDetails = { workId ->
+                            navController.navigate(Screen.RepertoireDetail.routeWithArgs(workId))
+                        },
+                        onEdit = { workId ->
+                            navController.navigate(Screen.AddEditRepertoire.routeWithArgs(workId))
+                        },
+                        onDelete = {
+                            viewModel.onDeleteRequest(it)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 /**
  * Vista de repertorio.
  */
@@ -135,19 +188,12 @@ fun RepertoireScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDeleteDialog() },
-            title =
-                { Text("Confirmar borrado") },
-            text = {
-                Text(
-                    "¿Estás seguro de que quieres eliminar esta obra? Esta acción no se puede deshacer."
-                )
-            },
+            title = { Text("Confirmar borrado") },
+            text = { Text("¿Estás seguro de que quieres eliminar esta obra? Esta acción no se puede deshacer.") },
             confirmButton = {
                 Button(
                     onClick = { viewModel.onConfirmDelete() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Eliminar")
                 }
@@ -251,51 +297,12 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (repertoireList.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.caja_vacia),
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "No hay ningún tema disponible",
-                        fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(repertoireList) { work ->
-                    WorkItem(
-                        work = work,
-                        isDirector = isDirector,
-                        onViewDetails = { workId ->
-                            navController.navigate(Screen.RepertoireDetail.routeWithArgs(workId))
-                        },
-                        onEdit = { workId ->
-                            navController.navigate(Screen.AddEditRepertoire.routeWithArgs(workId))
-                        },
-                        onDelete = { workId ->
-                            viewModel.onDeleteRequest(workId)
-                        }
-                    )
-                }
-            }
-        }
+        RepertoireList(
+            modifier = Modifier.weight(1f),
+            repertoireList = repertoireList,
+            isDirector = isDirector,
+            navController = navController,
+            viewModel = viewModel
+        )
     }
 }
