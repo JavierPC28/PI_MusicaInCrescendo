@@ -16,17 +16,19 @@ class EventRepositoryImpl(
 ) : EventRepository {
     override suspend fun addEvent(
         title: String,
+        description: String?,
         type: String,
         date: String,
         startTime: String,
         endTime: String,
         location: String,
+        coordinates: String?,
         repertoire: Map<String, String>
     ) {
         auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
         val eventRef = database.reference.child("events").child(Constants.GROUP_ID).push()
 
-        val eventData = mapOf(
+        val eventData = mutableMapOf<String, Any>(
             "title" to title,
             "type" to type,
             "date" to date,
@@ -35,6 +37,9 @@ class EventRepositoryImpl(
             "location" to location,
             "repertoireIds" to repertoire
         )
+
+        description?.let { eventData["description"] = it }
+        coordinates?.let { eventData["coordinates"] = it }
 
         eventRef.setValue(eventData).await()
     }
@@ -86,11 +91,13 @@ class EventRepositoryImpl(
 
         val eventData = mapOf(
             "title" to event.title,
+            "description" to event.description,
             "type" to event.type,
             "date" to event.date,
             "startTime" to event.startTime,
             "endTime" to event.endTime,
             "location" to event.location,
+            "coordinates" to event.coordinates,
             "repertoireIds" to event.repertoireIds,
             "asistencias" to event.asistencias
         )

@@ -29,6 +29,9 @@ class AddEventViewModel(
     private val _title = MutableStateFlow("")
     val title: StateFlow<String> = _title.asStateFlow()
 
+    private val _description = MutableStateFlow("")
+    val description: StateFlow<String> = _description.asStateFlow()
+
     private val _eventType = MutableStateFlow<EventType?>(null)
     val eventType: StateFlow<EventType?> = _eventType.asStateFlow()
 
@@ -43,6 +46,9 @@ class AddEventViewModel(
 
     private val _location = MutableStateFlow("")
     val location: StateFlow<String> = _location.asStateFlow()
+
+    private val _coordinates = MutableStateFlow("")
+    val coordinates: StateFlow<String> = _coordinates.asStateFlow()
 
     private val _allRepertoire = MutableStateFlow<List<Repertoire>>(emptyList())
     val allRepertoire: StateFlow<List<Repertoire>> = _allRepertoire.asStateFlow()
@@ -63,7 +69,8 @@ class AddEventViewModel(
         _startTime,
         _endTime,
         _location,
-        _selectedRepertoire
+        _selectedRepertoire,
+        _coordinates
     ) { values ->
         val titleValue = values[0] as String
         val type = values[1] as? EventType
@@ -72,6 +79,10 @@ class AddEventViewModel(
         val endTimeValue = values[4] as String
         val locationValue = values[5] as String
         val repertoireValue = values[6] as Map<*, *>
+        val coordinatesValue = values[7] as String
+
+        val coordinatesRegex =
+            """^-?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*-?((1[0-7]|[1-9])?\d(\.\d+)?|180(\.0+)?)$""".toRegex()
 
         titleValue.isNotBlank() &&
                 type != null &&
@@ -79,7 +90,8 @@ class AddEventViewModel(
                 startTimeValue.isNotBlank() &&
                 endTimeValue.isNotBlank() &&
                 locationValue.isNotBlank() &&
-                repertoireValue.isNotEmpty()
+                repertoireValue.isNotEmpty() &&
+                (coordinatesValue.isBlank() || coordinatesRegex.matches(coordinatesValue.trim()))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
@@ -99,11 +111,13 @@ class AddEventViewModel(
                 if (event != null) {
                     originalEvent = event
                     _title.value = event.title
+                    _description.value = event.description ?: ""
                     _eventType.value = EventType.entries.find { it.displayName == event.type }
                     _date.value = event.date
                     _startTime.value = event.startTime
                     _endTime.value = event.endTime
                     _location.value = event.location
+                    _coordinates.value = event.coordinates ?: ""
                     _selectedRepertoire.value = event.repertoireIds
                 } else {
                     _saveError.value = "No se pudo encontrar el evento para editar."
@@ -116,6 +130,12 @@ class AddEventViewModel(
 
     fun onTitleChange(newTitle: String) {
         _title.value = newTitle
+    }
+
+    fun onDescriptionChange(newDescription: String) {
+        if (newDescription.length <= 500) {
+            _description.value = newDescription
+        }
     }
 
     fun onEventTypeSelected(type: EventType) {
@@ -138,6 +158,10 @@ class AddEventViewModel(
         _location.value = newLocation
     }
 
+    fun onCoordinatesChange(newCoordinates: String) {
+        _coordinates.value = newCoordinates
+    }
+
     fun onRepertoireToggle(repertoireItem: Repertoire, isSelected: Boolean) {
         val current = _selectedRepertoire.value.toMutableMap()
         if (isSelected) {
@@ -156,22 +180,26 @@ class AddEventViewModel(
                 if (eventId == null) {
                     addEventUseCase(
                         title = _title.value.trim(),
+                        description = _description.value.trim().ifEmpty { null },
                         type = _eventType.value!!.displayName,
                         date = _date.value,
                         startTime = _startTime.value,
                         endTime = _endTime.value,
                         location = _location.value.trim(),
+                        coordinates = _coordinates.value.trim().ifEmpty { null },
                         repertoire = _selectedRepertoire.value
                     )
                 } else {
                     val updatedEvent = Event(
                         id = eventId!!,
                         title = _title.value.trim(),
+                        description = _description.value.trim().ifEmpty { null },
                         type = _eventType.value!!.displayName,
                         date = _date.value,
                         startTime = _startTime.value,
                         endTime = _endTime.value,
                         location = _location.value.trim(),
+                        coordinates = _coordinates.value.trim().ifEmpty { null },
                         repertoireIds = _selectedRepertoire.value,
                         asistencias = originalEvent?.asistencias ?: emptyMap()
                     )

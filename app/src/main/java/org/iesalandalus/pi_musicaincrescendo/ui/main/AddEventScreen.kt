@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -28,11 +29,13 @@ fun AddEventScreen(
     val context = LocalContext.current
 
     val title by viewModel.title.collectAsState()
+    val description by viewModel.description.collectAsState()
     val eventType by viewModel.eventType.collectAsState()
     val date by viewModel.date.collectAsState()
     val startTime by viewModel.startTime.collectAsState()
     val endTime by viewModel.endTime.collectAsState()
     val location by viewModel.location.collectAsState()
+    val coordinates by viewModel.coordinates.collectAsState()
     val allRepertoire by viewModel.allRepertoire.collectAsState()
     val selectedRepertoire by viewModel.selectedRepertoire.collectAsState()
 
@@ -76,6 +79,25 @@ fun AddEventScreen(
                 label = { Text("Ej: Concierto de Santa Cecilia") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
+            )
+        }
+
+        item {
+            Text("Descripción (Opcional)", fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = description,
+                onValueChange = viewModel::onDescriptionChange,
+                label = { Text("Indumentaria, reglas, etc.") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                maxLines = 5
+            )
+            Text(
+                text = "${description.length} / 500",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
             )
         }
 
@@ -148,6 +170,17 @@ fun AddEventScreen(
                 onValueChange = viewModel::onLocationChange,
                 label = { Text("Ej: Centro Cultural Zaharagüi...") },
                 modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        item {
+            Text("Coordenadas (Opcional)", fontWeight = FontWeight.Bold)
+            OutlinedTextField(
+                value = coordinates,
+                onValueChange = viewModel::onCoordinatesChange,
+                label = { Text("Ej: 36.972436, -2.961873") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
         }
 

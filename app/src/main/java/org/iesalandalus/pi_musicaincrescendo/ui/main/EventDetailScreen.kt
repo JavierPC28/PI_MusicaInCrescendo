@@ -129,9 +129,16 @@ private fun EventDetailContent(
 @Composable
 private fun DetailsTab(event: Event) {
     val context = LocalContext.current
-    val hardcodedCoords = LatLng(36.972436853721284, -2.9618738303413217)
+    val coordinates = remember(event.coordinates) {
+        try {
+            event.coordinates?.split(',')
+                ?.map { it.trim().toDouble() }
+                ?.let { LatLng(it[0], it[1]) }
+        } catch (_: Exception) {
+            null
+        }
+    }
     val mapView = rememberMapViewWithLifecycle()
-
 
     fun formatDate(dateStr: String): String {
         return try {
@@ -176,26 +183,44 @@ private fun DetailsTab(event: Event) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            AndroidView(
-                factory = { mapView },
-                modifier = Modifier.fillMaxSize(),
-                update = { mv ->
-                    mv.getMapAsync { map ->
-                        map.uiSettings.isZoomControlsEnabled = true
-                        map.uiSettings.isScrollGesturesEnabled = false
-                        map.addMarker(
-                            MarkerOptions().position(hardcodedCoords).title(event.location)
-                        )
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(hardcodedCoords, 17f))
+        if (coordinates != null) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                AndroidView(
+                    factory = { mapView },
+                    modifier = Modifier.fillMaxSize(),
+                    update = { mv ->
+                        mv.getMapAsync { map ->
+                            map.uiSettings.isZoomControlsEnabled = true
+                            map.uiSettings.isScrollGesturesEnabled = false
+                            map.clear()
+                            map.addMarker(
+                                MarkerOptions().position(coordinates).title(event.location)
+                            )
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 17f))
+                        }
                     }
-                }
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        if (!event.description.isNullOrBlank()) {
+            Text(
+                text = "Descripción",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = event.description,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -272,8 +297,6 @@ private fun MembersTab(members: List<User>) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(members) { user ->
-                // Reutilizamos el MemberRow de HomeScreen, habría que extraerlo a common/components
-                // para un proyecto más grande. Por ahora lo recreamos aquí para ser autocontenido.
                 MemberRow(user = user)
             }
         }
