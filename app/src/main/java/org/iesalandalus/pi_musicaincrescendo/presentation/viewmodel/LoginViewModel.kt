@@ -7,10 +7,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Validator
 import org.iesalandalus.pi_musicaincrescendo.data.repository.AuthRepositoryImpl
+import org.iesalandalus.pi_musicaincrescendo.data.repository.UserRepositoryImpl
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.LoginUseCase
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
 
 class LoginViewModel(
-    private val loginUseCase: LoginUseCase = LoginUseCase(AuthRepositoryImpl())
+    private val loginUseCase: LoginUseCase = LoginUseCase(AuthRepositoryImpl()),
+    private val authRepository: AuthRepositoryImpl = AuthRepositoryImpl(),
+    private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
 ) : ViewModel() {
 
     private val _email = MutableStateFlow("")
@@ -52,6 +56,33 @@ class LoginViewModel(
                 _loginSuccess.value = true
             } catch (e: Exception) {
                 _errorMessage.value = e.message
+            }
+        }
+    }
+
+    fun onGoogleLogin(idToken: String) {
+        viewModelScope.launch {
+            try {
+                val authResult = authRepository.signInWithGoogle(idToken)
+                val user = authResult.user
+                if (user != null) {
+                    // Si el usuario no existe en la base de datos, lo creamos
+                    if (!userUseCases.userExists(user.uid)) {
+                        userUseCases.createUserProfile(
+                            uid = user.uid,
+                            displayName = user.displayName ?: "Usuario sin nombre",
+                            gender = "Prefiero no decirlo",
+                            isDirector = false,
+                            instruments = emptyList(),
+                            photoUrl = user.photoUrl?.toString()
+                        )
+                    }
+                    _loginSuccess.value = true
+                } else {
+                    _errorMessage.value = "No se pudo obtener el usuario de Google."
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Error en el inicio de sesión con Google: ${e.message}"
             }
         }
     }

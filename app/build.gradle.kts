@@ -51,6 +51,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.ktx)
 
+    // Coil para carga de imágenes
+    implementation(libs.coil.compose)
+
     // Compose y Navegación
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -72,6 +75,9 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+
+    // Google Sign-In
+    implementation(libs.play.services.auth)
 
     // Tests
     testImplementation(libs.junit)

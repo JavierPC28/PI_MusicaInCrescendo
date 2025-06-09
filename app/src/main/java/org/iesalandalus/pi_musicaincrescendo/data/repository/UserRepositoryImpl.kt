@@ -1,6 +1,8 @@
 package org.iesalandalus.pi_musicaincrescendo.data.repository
 
+import android.net.Uri
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -10,7 +12,8 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.User
 import org.iesalandalus.pi_musicaincrescendo.domain.model.UserProfile
 
 class UserRepositoryImpl(
-    private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+    private val database: FirebaseDatabase = FirebaseDatabase.getInstance(),
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 ) : UserRepository {
 
     override suspend fun createUserProfile(
@@ -18,7 +21,8 @@ class UserRepositoryImpl(
         displayName: String,
         gender: String,
         isDirector: Boolean,
-        instruments: List<String>
+        instruments: List<String>,
+        photoUrl: String?
     ) {
         val userRef = database.getReference("users").child(uid)
 
@@ -33,7 +37,8 @@ class UserRepositoryImpl(
             "displayName" to displayName,
             "gender" to gender,
             "isDirector" to isDirector,
-            "instruments" to sanitizedInstruments
+            "instruments" to sanitizedInstruments,
+            "photoUrl" to photoUrl
         )
         userRef.setValue(profileData).await()
     }
@@ -52,6 +57,20 @@ class UserRepositoryImpl(
             .child("displayName")
             .setValue(displayName)
             .await()
+    }
+
+    override suspend fun updatePhotoUrl(uid: String, photoUrl: String) {
+        database.getReference("users")
+            .child(uid)
+            .child("photoUrl")
+            .setValue(photoUrl)
+            .await()
+    }
+
+    override suspend fun uploadProfileImage(uid: String, imageUri: Uri): String {
+        val storageRef = storage.reference.child("profile_images/$uid.jpg")
+        storageRef.putFile(imageUri).await()
+        return storageRef.downloadUrl.await().toString()
     }
 
     override suspend fun getUserProfile(uid: String): UserProfile {
@@ -115,12 +134,18 @@ class UserRepositoryImpl(
         database.getReference("users").child(uid).removeValue().await()
     }
 
+    override suspend fun userExists(uid: String): Boolean {
+        val snapshot = database.getReference("users").child(uid).get().await()
+        return snapshot.exists()
+    }
+
     private fun parseUserProfile(snapshot: DataSnapshot): UserProfile {
         return UserProfile(
             displayName = snapshot.child("displayName").getValue(String::class.java) ?: "",
             gender = snapshot.child("gender").getValue(String::class.java) ?: "",
             isDirector = snapshot.child("isDirector").getValue(Boolean::class.java) == true,
-            instruments = snapshot.child("instruments").children.mapNotNull { it.getValue(String::class.java) }
+            instruments = snapshot.child("instruments").children.mapNotNull { it.getValue(String::class.java) },
+            photoUrl = snapshot.child("photoUrl").getValue(String::class.java)
         )
     }
 }

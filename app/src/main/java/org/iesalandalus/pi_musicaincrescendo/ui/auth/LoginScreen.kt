@@ -1,7 +1,9 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.auth
 
-import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
+import android.app.Activity
+import androidx.activity.compose.*
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -10,9 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.ApiException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
@@ -30,6 +37,8 @@ fun LoginScreen(
     }
 
     val activity = LocalActivity.current
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
@@ -42,6 +51,54 @@ fun LoginScreen(
 
     // Habilita el botón solo si los campos están completos y válidos
     val isFormValid = email.isNotBlank() && isEmailValid && password.isNotBlank() && isPasswordValid
+
+    // Launcher para el resultado de Google Sign-In
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            coroutineScope.launch {
+                try {
+                    val oneTapClient = Identity.getSignInClient(context)
+                    val credential = oneTapClient.getSignInCredentialFromIntent(result.data)
+                    val googleIdToken = credential.googleIdToken
+                    if (googleIdToken != null) {
+                        viewModel.onGoogleLogin(googleIdToken)
+                    } else {
+                        // Para manejar errores
+                    }
+                } catch (_: ApiException) {
+                    // Para manejar errores
+                }
+            }
+        }
+    }
+
+    // Función para iniciar el flujo de Google Sign-In
+    fun startGoogleSignIn() {
+        coroutineScope.launch {
+            val oneTapClient = Identity.getSignInClient(context)
+            val signInRequest =
+                com.google.android.gms.auth.api.identity.BeginSignInRequest.builder()
+                    .setGoogleIdTokenRequestOptions(
+                        com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                            .setSupported(true)
+                            .setServerClientId(context.getString(R.string.google_user_key))
+                            .setFilterByAuthorizedAccounts(false)
+                            .build()
+                    )
+                    .build()
+
+            try {
+                val result = oneTapClient.beginSignIn(signInRequest).await()
+                googleSignInLauncher.launch(
+                    IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
+                )
+            } catch (_: Exception) {
+                // Manejar error, por ejemplo, si no hay servicios de Google Play
+            }
+        }
+    }
 
     // Si el login fue exitoso, navegamos a home
     LaunchedEffect(loginSuccess) {
@@ -112,6 +169,13 @@ fun LoginScreen(
             TextButton(onClick = onNavigateToRegister) {
                 Text(text = "¿No tienes cuenta? Regístrate")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botón de inicio de sesión con Google
+            GoogleSignInButton(
+                onClick = { startGoogleSignIn() }
+            )
 
             // Mensaje de error debajo del formulario
             errorMessage?.let { msg ->

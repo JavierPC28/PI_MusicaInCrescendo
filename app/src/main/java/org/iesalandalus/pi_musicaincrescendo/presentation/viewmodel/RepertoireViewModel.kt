@@ -82,8 +82,12 @@ class RepertoireViewModel(
 
     init {
         viewModelScope.launch {
-            getRepertoireUseCase().collect { works ->
-                _allWorks.value = works
+            try {
+                getRepertoireUseCase().collect { works ->
+                    _allWorks.value = works
+                }
+            } catch (_: Exception) {
+                // Para manejar errores en un futuro
             }
         }
         loadUserRole()

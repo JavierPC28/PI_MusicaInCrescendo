@@ -1,5 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -39,6 +40,9 @@ class ProfileViewModel(
     private val _isDirector = MutableStateFlow(false)
     val isDirector: StateFlow<Boolean> = _isDirector
 
+    private val _photoUrl = MutableStateFlow<String?>(null)
+    val photoUrl: StateFlow<String?> = _photoUrl
+
     private val _selectedInstruments = MutableStateFlow<List<String>>(emptyList())
     val selectedInstruments: StateFlow<List<String>> = _selectedInstruments
 
@@ -65,6 +69,7 @@ class ProfileViewModel(
                     _displayName.value = profile.displayName
                     _gender.value = profile.gender
                     _isDirector.value = profile.isDirector
+                    _photoUrl.value = profile.photoUrl
 
                     // Si es director, forzamos dirección musical siempre primero
                     val inicial = mutableListOf<String>().apply {
@@ -94,6 +99,22 @@ class ProfileViewModel(
             }
         }
     }
+
+    fun onProfileImageChange(uri: Uri) {
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val newPhotoUrl = userUseCases.uploadProfileImage(uid, uri)
+                userUseCases.updatePhotoUrl(uid, newPhotoUrl)
+                _photoUrl.value = newPhotoUrl
+                _uiState.value = UiState.Success("Foto de perfil actualizada")
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error("Error al cambiar la foto: ${e.message}")
+            }
+        }
+    }
+
 
     fun onInstrumentToggle(instrument: String) {
         val isDir = _isDirector.value

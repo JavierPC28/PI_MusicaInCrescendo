@@ -29,8 +29,12 @@ class HomeViewModel(
 
     private fun cargarUserCountRealTime() {
         userCountJob = viewModelScope.launch {
-            userUseCases.getUserCountRealTime().collectLatest { count ->
-                _userCount.value = count
+            try {
+                userUseCases.getUserCountRealTime().collectLatest { count ->
+                    _userCount.value = count
+                }
+            } catch (_: Exception) {
+                // Para control de errores
             }
         }
     }
@@ -42,7 +46,7 @@ class HomeViewModel(
                     _members.value = users
                 }
             } catch (_: Exception) {
-                // Ignoramos errores
+                // Para control de errores
             }
         }
     }

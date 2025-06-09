@@ -1,7 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.data.repository
 
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.*
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
@@ -15,6 +14,11 @@ class AuthRepositoryImpl(
 
     override suspend fun login(email: String, password: String): AuthResult {
         return auth.signInWithEmailAndPassword(email, password).await()
+    }
+
+    override suspend fun signInWithGoogle(idToken: String): AuthResult {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        return auth.signInWithCredential(credential).await()
     }
 
     override fun currentUserEmail(): String? = auth.currentUser?.email
@@ -33,4 +37,6 @@ class AuthRepositoryImpl(
     override suspend fun deleteAccount() {
         auth.currentUser?.delete()?.await()
     }
+
+    override fun getCurrentUser(): FirebaseUser? = auth.currentUser
 }

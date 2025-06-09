@@ -1,9 +1,13 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -14,11 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants.DIRECCION_MUSICAL
@@ -35,10 +41,17 @@ fun ProfileScreen() {
     val displayName by vm.displayName.collectAsState()
     val gender by vm.gender.collectAsState()
     val isDirector by vm.isDirector.collectAsState()
+    val photoUrl by vm.photoUrl.collectAsState()
     val selectedInstruments by vm.selectedInstruments.collectAsState()
     val uiState by vm.uiState.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { vm.onProfileImageChange(it) }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is ProfileViewModel.UiState.Success) showDialog = false
@@ -54,7 +67,9 @@ fun ProfileScreen() {
             displayName = displayName,
             gender = gender,
             isDirector = isDirector,
-            onEditName = { showDialog = true }
+            photoUrl = photoUrl,
+            onEditName = { showDialog = true },
+            onEditPhoto = { imagePickerLauncher.launch("image/*") }
         )
 
         InstrumentInstructions(isDirector = isDirector)
@@ -90,6 +105,10 @@ fun ProfileScreen() {
                 onDismiss = { showDialog = false }
             )
         }
+
+        if (uiState is ProfileViewModel.UiState.Loading) {
+            CircularProgressIndicator()
+        }
     }
 }
 
@@ -98,27 +117,49 @@ private fun ProfileHeader(
     displayName: String,
     gender: String,
     isDirector: Boolean,
-    onEditName: () -> Unit
+    photoUrl: String?,
+    onEditName: () -> Unit,
+    onEditPhoto: () -> Unit
 ) {
     Column(
         Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val imageRes = ImageHelper.getProfileImage(gender, isDirector)
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .size(120.dp)
-                .border(
-                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                    RoundedCornerShape(12.dp)
+        Box {
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .size(120.dp)
+                    .border(
+                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                        RoundedCornerShape(12.dp)
+                    )
+            ) {
+                AsyncImage(
+                    model = photoUrl,
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(ImageHelper.getProfileImage(gender, isDirector)),
+                    error = painterResource(ImageHelper.getProfileImage(gender, isDirector))
                 )
-        ) {
-            Image(
-                painter = painterResource(imageRes),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
+            }
+            Card(
+                shape = CircleShape,
+                modifier = Modifier
+                    .size(32.dp)
+                    .align(Alignment.BottomEnd)
+                    .clickable { onEditPhoto() },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar foto",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
         Spacer(Modifier.height(8.dp))
         Row(
