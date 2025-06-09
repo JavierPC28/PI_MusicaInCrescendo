@@ -220,6 +220,7 @@ fun AddEventScreen(
                     onClick = {
                         val time =
                             String.format(
+                                Locale.getDefault(),
                                 "%02d:%02d",
                                 startTimePickerState.hour,
                                 startTimePickerState.minute
@@ -248,6 +249,7 @@ fun AddEventScreen(
                     onClick = {
                         val time =
                             String.format(
+                                Locale.getDefault(),
                                 "%02d:%02d",
                                 endTimePickerState.hour,
                                 endTimePickerState.minute

@@ -9,7 +9,6 @@ import kotlinx.coroutines.tasks.await
 import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
 import org.iesalandalus.pi_musicaincrescendo.domain.repository.EventRepository
-import java.util.UUID
 
 class EventRepositoryImpl(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
@@ -25,7 +24,6 @@ class EventRepositoryImpl(
     ) {
         auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
         val eventRef = database.reference.child("events").child(Constants.GROUP_ID).push()
-        val eventId = eventRef.key ?: UUID.randomUUID().toString()
 
         val eventData = mapOf(
             "type" to type,

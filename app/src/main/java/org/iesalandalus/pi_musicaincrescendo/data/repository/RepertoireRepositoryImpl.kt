@@ -21,6 +21,10 @@ class RepertoireRepositoryImpl(
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 ) : RepertoireRepository {
 
+    private companion object {
+        const val ERROR_USER_NOT_AUTHENTICATED = "Usuario no autenticado"
+    }
+
     override suspend fun addRepertoire(
         title: String,
         composer: String,
@@ -28,7 +32,7 @@ class RepertoireRepositoryImpl(
         instrumentFiles: Map<String, Uri>,
         dateSaved: Long
     ) {
-        FirebaseAuth.getInstance().currentUser ?: throw Exception("Usuario no autenticado")
+        FirebaseAuth.getInstance().currentUser ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
 
         val instrumentUrls = mutableMapOf<String, String>()
         for ((instrument, uri) in instrumentFiles) {
@@ -63,7 +67,7 @@ class RepertoireRepositoryImpl(
 
     override fun getRepertoireRealTime(): Flow<List<Repertoire>> = callbackFlow {
         FirebaseAuth.getInstance().currentUser?.uid ?: run {
-            close(Exception("Usuario no autenticado"))
+            close(Exception(ERROR_USER_NOT_AUTHENTICATED))
             return@callbackFlow
         }
 
@@ -88,7 +92,7 @@ class RepertoireRepositoryImpl(
     }
 
     override suspend fun getRepertoireById(id: String): Repertoire? {
-        FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val snapshot = database.reference
             .child("repertoire")
             .child(Constants.GROUP_ID)
@@ -106,7 +110,7 @@ class RepertoireRepositoryImpl(
         videoUrl: String?,
         instrumentFiles: Map<String, Uri>
     ) {
-        FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val workRef = database.reference.child("repertoire").child(Constants.GROUP_ID).child(workId)
 
         // Borramos los archivos antiguos
@@ -142,7 +146,7 @@ class RepertoireRepositoryImpl(
     }
 
     override suspend fun deleteRepertoire(id: String) {
-        FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        FirebaseAuth.getInstance().currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val workRef = database.reference.child("repertoire").child(Constants.GROUP_ID).child(id)
         val work = getRepertoireById(id)
 
