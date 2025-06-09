@@ -1,6 +1,7 @@
 package org.iesalandalus.pi_musicaincrescendo
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -301,6 +303,69 @@ fun MainScaffold(
     val mainViewModel: MainViewModel = viewModel()
     val homeViewModel: HomeViewModel = viewModel()
     val activity = LocalActivity.current
+    val context = LocalContext.current
+
+    val showDeleteDialog1 by mainViewModel.showDeleteDialog1.collectAsState()
+    val showDeleteDialog2 by mainViewModel.showDeleteDialog2.collectAsState()
+    val deleteError by mainViewModel.deleteError.collectAsState()
+
+    // Observador de errores de eliminación
+    LaunchedEffect(deleteError) {
+        deleteError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            mainViewModel.onDismissDeleteDialogs() // Resetea el error
+        }
+    }
+
+    // Primer diálogo de confirmación
+    if (showDeleteDialog1) {
+        AlertDialog(
+            onDismissRequest = { mainViewModel.onDismissDeleteDialogs() },
+            title = { Text("¿Eliminar cuenta?") },
+            text = { Text("Esta acción es permanente y eliminará todos tus datos. ¿Estás seguro?") },
+            confirmButton = {
+                Button(
+                    onClick = { mainViewModel.onConfirmDelete1() },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Sí, eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mainViewModel.onDismissDeleteDialogs() }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // Segundo diálogo de confirmación (botones invertidos)
+    if (showDeleteDialog2) {
+        AlertDialog(
+            onDismissRequest = { mainViewModel.onDismissDeleteDialogs() },
+            title = { Text("¿Estás completamente seguro?") },
+            text = { Text("No podrás recuperar tu cuenta ni tus datos. Esta es tu última oportunidad para cancelar.") },
+            confirmButton = {
+                // El botón de cancelar aparece a la derecha en este diálogo
+                TextButton(onClick = { mainViewModel.onDismissDeleteDialogs() }) {
+                    Text("No, cancelar")
+                }
+            },
+            dismissButton = {
+                // El botón de confirmación final aparece a la izquierda
+                Button(
+                    onClick = {
+                        mainViewModel.onConfirmDelete2()
+                        // Navega al login inmediatamente después de la confirmación final
+                        navController.navigate("login") { popUpTo(0) }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Sí, estoy seguro")
+                }
+            }
+        )
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -312,7 +377,11 @@ fun MainScaffold(
                         mainViewModel.logout()
                         navController.navigate("login") { popUpTo(0) }
                     },
-                    onExit = { activity?.finish() }
+                    onExit = { activity?.finish() },
+                    onDeleteAccount = {
+                        scope.launch { drawerState.close() }
+                        mainViewModel.onDeleteAccountRequest()
+                    }
                 )
             }
         }

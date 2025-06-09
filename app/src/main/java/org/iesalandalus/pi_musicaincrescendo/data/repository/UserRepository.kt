@@ -28,4 +28,6 @@ interface UserRepository {
     fun getUserCountRealTime(): Flow<Int>
 
     fun getUsersRealTime(): Flow<List<User>>
+
+    suspend fun deleteUserProfile(uid: String)
 }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -23,13 +24,15 @@ private data class Grupo(
     val id: Int,
     val iconRes: Int? = null,
     val iconVector: ImageVector? = null,
-    val texto: String
+    val texto: String,
+    val isDestructive: Boolean = false
 )
 
 @Composable
 fun DrawerContent(
     onLogout: () -> Unit,
-    onExit: () -> Unit
+    onExit: () -> Unit,
+    onDeleteAccount: () -> Unit
 ) {
     val context = LocalContext.current
     val grupos = remember {
@@ -46,7 +49,13 @@ fun DrawerContent(
     val opcionesInferiores = remember {
         listOf(
             Grupo(3, iconRes = R.drawable.cerrar_sesion, texto = "Cerrar Sesión"),
-            Grupo(4, iconRes = R.drawable.salir_app, texto = "Salir")
+            Grupo(4, iconRes = R.drawable.salir_app, texto = "Salir"),
+            Grupo(
+                5,
+                iconRes = R.drawable.borrar,
+                texto = "Eliminar Cuenta",
+                isDestructive = true
+            )
         )
     }
     var seleccionado by rememberSaveable { mutableIntStateOf(0) }
@@ -96,6 +105,7 @@ fun DrawerContent(
                     when (grupo.id) {
                         3 -> onLogout()
                         4 -> onExit()
+                        5 -> onDeleteAccount()
                     }
                 }
             )
@@ -109,6 +119,8 @@ private fun GrupoItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val textColor = if (grupo.isDestructive) Color(0xFFD32F2F) else LocalContentColor.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -149,6 +161,6 @@ private fun GrupoItem(
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge)
+        Text(text = grupo.texto, style = MaterialTheme.typography.bodyLarge, color = textColor)
     }
 }

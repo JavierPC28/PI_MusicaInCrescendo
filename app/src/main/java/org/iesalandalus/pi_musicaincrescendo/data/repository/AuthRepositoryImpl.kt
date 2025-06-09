@@ -29,4 +29,8 @@ class AuthRepositoryImpl(
     }
 
     override fun currentUserId(): String? = auth.currentUser?.uid
+
+    override suspend fun deleteAccount() {
+        auth.currentUser?.delete()?.await()
+    }
 }

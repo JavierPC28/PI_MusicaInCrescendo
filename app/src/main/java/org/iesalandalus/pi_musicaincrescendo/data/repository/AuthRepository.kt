@@ -10,4 +10,5 @@ interface AuthRepository {
     fun logout()
     fun currentUserRegistrationDate(): Date?
     fun currentUserId(): String?
+    suspend fun deleteAccount()
 }

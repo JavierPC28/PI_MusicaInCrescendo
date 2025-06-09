@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -197,6 +198,18 @@ fun EventCard(
     onUpdateAttendance: (String, String) -> Unit,
     onViewDetails: (String) -> Unit
 ) {
+    fun parseEventDateTime(dateStr: String, timeStr: String): Date? {
+        return try {
+            val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            format.parse("$dateStr $timeStr")
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    val isPast = parseEventDateTime(event.date, event.endTime)?.before(Date()) == true
+    val cardAlpha = if (isPast) 0.6f else 1f
+
     fun formatDate(dateStr: String, timeStr: String): String {
         return try {
             val dateTimeStr = "$dateStr $timeStr"
@@ -213,9 +226,13 @@ fun EventCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .alpha(cardAlpha)
             .clickable { onViewDetails(event.id) },
         shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isPast) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
+        )
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -258,7 +275,11 @@ fun EventCard(
                         .align(Alignment.TopEnd)
                         .padding(top = 8.dp, end = 8.dp)
                 ) {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(24.dp)) {
+                    IconButton(
+                        onClick = onEdit,
+                        modifier = Modifier.size(24.dp),
+                        enabled = !isPast
+                    ) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar evento")
                     }
                     IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
@@ -293,14 +314,20 @@ fun EventCard(
 
                     else -> {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { onUpdateAttendance(event.id, "NO IRÉ") }) {
+                            IconButton(
+                                onClick = { onUpdateAttendance(event.id, "NO IRÉ") },
+                                enabled = !isPast
+                            ) {
                                 Icon(
                                     Icons.Filled.Close,
                                     contentDescription = "No iré",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }
-                            IconButton(onClick = { onUpdateAttendance(event.id, "IRÉ") }) {
+                            IconButton(
+                                onClick = { onUpdateAttendance(event.id, "IRÉ") },
+                                enabled = !isPast
+                            ) {
                                 Icon(
                                     Icons.Filled.Check,
                                     contentDescription = "Iré",

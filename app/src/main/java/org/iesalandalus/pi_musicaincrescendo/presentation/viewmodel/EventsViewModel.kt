@@ -7,10 +7,10 @@ import kotlinx.coroutines.launch
 import org.iesalandalus.pi_musicaincrescendo.data.repository.*
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
 import org.iesalandalus.pi_musicaincrescendo.domain.model.EventFilterType
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.DeleteEventUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetEventsUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateAttendanceUseCase
-import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.*
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class EventsViewModel(
     private val getEventsUseCase: GetEventsUseCase = GetEventsUseCase(EventRepositoryImpl()),
@@ -42,15 +42,38 @@ class EventsViewModel(
 
     val currentUserId: String? = authRepository.currentUserId()
 
+    private fun parseEventDateTime(event: Event): Calendar? {
+        return try {
+            val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+            val date = format.parse("${event.date} ${event.endTime}")
+            Calendar.getInstance().apply { time = date }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     val filteredEvents: StateFlow<List<Event>> = combine(
         _allEvents,
         _activeFilter
     ) { events, filter ->
-        when (filter) {
+        val filtered = when (filter) {
             EventFilterType.TODOS -> events
             EventFilterType.CONCIERTO -> events.filter { it.type == "Concierto" }
             EventFilterType.ENSAYO -> events.filter { it.type == "Ensayo" }
         }
+
+        val now = Calendar.getInstance()
+        val (pastEvents, futureEvents) = filtered.partition {
+            val eventDate = parseEventDateTime(it)
+            eventDate != null && eventDate.before(now)
+        }
+
+        futureEvents.sortedBy { parseEventDateTime(it) } + pastEvents.sortedByDescending {
+            parseEventDateTime(
+                it
+            )
+        }
+
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
@@ -77,7 +100,7 @@ class EventsViewModel(
             _isLoading.value = true
             try {
                 getEventsUseCase().collect {
-                    _allEvents.value = it.sortedByDescending { event -> event.date }
+                    _allEvents.value = it
                     _isLoading.value = false
                 }
             } catch (e: Exception) {

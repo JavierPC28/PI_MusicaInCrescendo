@@ -111,6 +111,10 @@ class UserRepositoryImpl(
         awaitClose { usersRef.removeEventListener(listener) }
     }
 
+    override suspend fun deleteUserProfile(uid: String) {
+        database.getReference("users").child(uid).removeValue().await()
+    }
+
     private fun parseUserProfile(snapshot: DataSnapshot): UserProfile {
         return UserProfile(
             displayName = snapshot.child("displayName").getValue(String::class.java) ?: "",
