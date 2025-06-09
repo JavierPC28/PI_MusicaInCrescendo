@@ -8,5 +8,6 @@ data class Event(
     val startTime: String = "",
     val endTime: String = "",
     val location: String = "",
-    val repertoireIds: Map<String, String> = emptyMap()
+    val repertoireIds: Map<String, String> = emptyMap(),
+    val asistencias: Map<String, String> = emptyMap()
 )

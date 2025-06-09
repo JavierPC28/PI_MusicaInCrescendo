@@ -9,11 +9,15 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
 import org.iesalandalus.pi_musicaincrescendo.domain.model.EventFilterType
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.DeleteEventUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.GetEventsUseCase
+import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UpdateAttendanceUseCase
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.UserUseCases
 
 class EventsViewModel(
     private val getEventsUseCase: GetEventsUseCase = GetEventsUseCase(EventRepositoryImpl()),
     private val deleteEventUseCase: DeleteEventUseCase = DeleteEventUseCase(EventRepositoryImpl()),
+    private val updateAttendanceUseCase: UpdateAttendanceUseCase = UpdateAttendanceUseCase(
+        EventRepositoryImpl()
+    ),
     private val authRepository: AuthRepository = AuthRepositoryImpl(),
     private val userUseCases: UserUseCases = UserUseCases(UserRepositoryImpl())
 ) : ViewModel() {
@@ -35,6 +39,8 @@ class EventsViewModel(
     private val _showDeleteDialog = MutableStateFlow(false)
     val showDeleteDialog: StateFlow<Boolean> = _showDeleteDialog
     private val _eventToDeleteId = MutableStateFlow<String?>(null)
+
+    val currentUserId: String? = authRepository.currentUserId()
 
     val filteredEvents: StateFlow<List<Event>> = combine(
         _allEvents,
@@ -108,5 +114,19 @@ class EventsViewModel(
     fun onDismissDeleteDialog() {
         _showDeleteDialog.value = false
         _eventToDeleteId.value = null
+    }
+
+    fun updateAttendance(eventId: String, status: String) {
+        if (currentUserId == null) {
+            _error.value = "Usuario no identificado."
+            return
+        }
+        viewModelScope.launch {
+            try {
+                updateAttendanceUseCase(eventId, currentUserId, status)
+            } catch (e: Exception) {
+                _error.value = "Error al actualizar asistencia: ${e.message}"
+            }
+        }
     }
 }

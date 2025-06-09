@@ -91,7 +91,8 @@ class EventRepositoryImpl(
             "startTime" to event.startTime,
             "endTime" to event.endTime,
             "location" to event.location,
-            "repertoireIds" to event.repertoireIds
+            "repertoireIds" to event.repertoireIds,
+            "asistencias" to event.asistencias
         )
 
         eventRef.updateChildren(eventData).await()
@@ -104,6 +105,18 @@ class EventRepositoryImpl(
             .child(Constants.GROUP_ID)
             .child(eventId)
             .removeValue()
+            .await()
+    }
+
+    override suspend fun updateAttendance(eventId: String, userId: String, status: String) {
+        auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        database.reference
+            .child("events")
+            .child(Constants.GROUP_ID)
+            .child(eventId)
+            .child("asistencias")
+            .child(userId)
+            .setValue(status)
             .await()
     }
 }

@@ -51,6 +51,12 @@ sealed class Screen(val route: String, val title: String) {
             return "repertoire_detail/$workId"
         }
     }
+
+    object EventDetail : Screen("event_detail", "Detalles del Evento") {
+        fun routeWithArgs(eventId: String): String {
+            return "event_detail/$eventId"
+        }
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -223,6 +229,13 @@ fun AppNavHost() {
             arguments = listOf(navArgument("workId") { type = NavType.StringType })
         ) {
             RepertoireDetailScreen(navController = navController)
+        }
+
+        composable(
+            route = "event_detail/{eventId}",
+            arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+        ) {
+            EventDetailScreen(navController = navController)
         }
 
         composable(

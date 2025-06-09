@@ -1,5 +1,6 @@
 package org.iesalandalus.pi_musicaincrescendo.ui.main
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +33,7 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
     val isDirector by viewModel.isDirector.collectAsState()
     val activeFilter by viewModel.activeFilter.collectAsState()
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
+    val currentUserId by remember { mutableStateOf(viewModel.currentUserId) }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -55,7 +57,6 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
             }
         )
     }
-
 
     Column(
         modifier = Modifier
@@ -165,11 +166,18 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
                         EventCard(
                             event = event,
                             isDirector = isDirector,
+                            currentUserId = currentUserId,
                             onEdit = {
                                 navController.navigate(Screen.AddEvent.routeWithArgs(event.id))
                             },
                             onDelete = {
                                 viewModel.onDeleteRequest(event.id)
+                            },
+                            onUpdateAttendance = { eventId, status ->
+                                viewModel.updateAttendance(eventId, status)
+                            },
+                            onViewDetails = { eventId ->
+                                navController.navigate(Screen.EventDetail.routeWithArgs(eventId))
                             }
                         )
                     }
@@ -180,7 +188,15 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
 }
 
 @Composable
-fun EventCard(event: Event, isDirector: Boolean, onEdit: () -> Unit, onDelete: () -> Unit) {
+fun EventCard(
+    event: Event,
+    isDirector: Boolean,
+    currentUserId: String?,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onUpdateAttendance: (String, String) -> Unit,
+    onViewDetails: (String) -> Unit
+) {
     fun formatDate(dateStr: String, timeStr: String): String {
         return try {
             val dateTimeStr = "$dateStr $timeStr"
@@ -195,7 +211,9 @@ fun EventCard(event: Event, isDirector: Boolean, onEdit: () -> Unit, onDelete: (
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onViewDetails(event.id) },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -231,7 +249,9 @@ fun EventCard(event: Event, isDirector: Boolean, onEdit: () -> Unit, onDelete: (
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                Spacer(Modifier.height(32.dp))
             }
+
             if (isDirector) {
                 Row(
                     modifier = Modifier
@@ -247,6 +267,47 @@ fun EventCard(event: Event, isDirector: Boolean, onEdit: () -> Unit, onDelete: (
                             contentDescription = "Eliminar evento",
                             tint = MaterialTheme.colorScheme.error
                         )
+                    }
+                }
+            }
+
+            val attendanceStatus = currentUserId?.let { event.asistencias[it] }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+            ) {
+                when (attendanceStatus) {
+                    "IRÉ" -> Text(
+                        text = "IRÉ",
+                        color = Color(0xFF2E7D32),
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    "NO IRÉ" -> Text(
+                        text = "NO IRÉ",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    else -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { onUpdateAttendance(event.id, "NO IRÉ") }) {
+                                Icon(
+                                    Icons.Filled.Close,
+                                    contentDescription = "No iré",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            IconButton(onClick = { onUpdateAttendance(event.id, "IRÉ") }) {
+                                Icon(
+                                    Icons.Filled.Check,
+                                    contentDescription = "Iré",
+                                    tint = Color(0xFF2E7D32)
+                                )
+                            }
+                        }
                     }
                 }
             }

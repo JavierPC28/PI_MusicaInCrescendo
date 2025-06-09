@@ -24,6 +24,7 @@ class AddEventViewModel(
 ) : ViewModel() {
 
     private var eventId: String? = null
+    private var originalEvent: Event? = null
 
     private val _title = MutableStateFlow("")
     val title: StateFlow<String> = _title.asStateFlow()
@@ -96,6 +97,7 @@ class AddEventViewModel(
             try {
                 val event = getEventByIdUseCase(id)
                 if (event != null) {
+                    originalEvent = event
                     _title.value = event.title
                     _eventType.value = EventType.entries.find { it.displayName == event.type }
                     _date.value = event.date
@@ -111,7 +113,6 @@ class AddEventViewModel(
             }
         }
     }
-
 
     fun onTitleChange(newTitle: String) {
         _title.value = newTitle
@@ -171,7 +172,8 @@ class AddEventViewModel(
                         startTime = _startTime.value,
                         endTime = _endTime.value,
                         location = _location.value.trim(),
-                        repertoireIds = _selectedRepertoire.value
+                        repertoireIds = _selectedRepertoire.value,
+                        asistencias = originalEvent?.asistencias ?: emptyMap()
                     )
                     updateEventUseCase(updatedEvent)
                 }
