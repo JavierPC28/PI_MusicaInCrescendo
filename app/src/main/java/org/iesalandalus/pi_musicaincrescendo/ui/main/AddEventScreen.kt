@@ -187,11 +187,14 @@ fun AddEventScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val selectedDate = Calendar.getInstance().apply {
-                            timeInMillis = datePickerState.selectedDateMillis!!
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selectedDate = Calendar.getInstance().apply {
+                                timeInMillis = millis
+                            }
+                            val formatter =
+                                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                            viewModel.onDateSelected(formatter.format(selectedDate.time))
                         }
-                        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                        viewModel.onDateSelected(formatter.format(selectedDate.time))
                         showDatePicker = false
                     }
                 ) {
