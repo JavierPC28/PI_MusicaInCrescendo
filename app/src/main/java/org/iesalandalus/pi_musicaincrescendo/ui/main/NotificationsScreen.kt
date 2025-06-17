@@ -18,11 +18,16 @@ import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Notification
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.NotificationsViewModel
 
+/**
+ * Pantalla que muestra la lista de notificaciones.
+ * @param viewModel ViewModel que gestiona el estado de las notificaciones.
+ */
 @Composable
 fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
     val notifications by viewModel.notifications.collectAsState()
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
 
+    // Muestra un diálogo de confirmación para eliminar todas las notificaciones.
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDeleteDialog() },
@@ -46,6 +51,7 @@ fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
         )
     }
 
+    // Muestra un estado vacío si no hay notificaciones.
     if (notifications.isEmpty()) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -67,6 +73,7 @@ fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
             }
         }
     } else {
+        // Muestra la lista de notificaciones.
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
@@ -83,6 +90,11 @@ fun NotificationsScreen(viewModel: NotificationsViewModel = viewModel()) {
     }
 }
 
+/**
+ * Componente que representa un único elemento en la lista de notificaciones.
+ * @param notification La notificación a mostrar.
+ * @param formattedDate La fecha formateada de la notificación.
+ */
 @Composable
 fun NotificationItem(notification: Notification, formattedDate: String) {
     Card(
@@ -95,6 +107,7 @@ fun NotificationItem(notification: Notification, formattedDate: String) {
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icono de la banda
             Image(
                 painter = painterResource(id = R.drawable.banda_alcolea),
                 contentDescription = "Icono de la banda",
@@ -103,6 +116,7 @@ fun NotificationItem(notification: Notification, formattedDate: String) {
                     .clip(CircleShape)
             )
             Spacer(modifier = Modifier.width(16.dp))
+            // Texto de la notificación
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = notification.text,
@@ -110,6 +124,7 @@ fun NotificationItem(notification: Notification, formattedDate: String) {
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
+            // Fecha de la notificación
             Text(
                 text = formattedDate,
                 style = MaterialTheme.typography.bodySmall,

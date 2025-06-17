@@ -35,6 +35,10 @@ import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getInstrum
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.ProfileViewModel
 import org.iesalandalus.pi_musicaincrescendo.ui.theme.colorOro
 
+/**
+ * Pantalla de perfil del usuario.
+ * Permite ver y editar el nombre, la foto de perfil y los instrumentos.
+ */
 @Composable
 fun ProfileScreen() {
     val vm: ProfileViewModel = viewModel()
@@ -47,12 +51,14 @@ fun ProfileScreen() {
 
     var showDialog by remember { mutableStateOf(false) }
 
+    // Lanzador para seleccionar una imagen de la galería.
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let { vm.onProfileImageChange(it) }
     }
 
+    // Cierra el diálogo de edición de nombre si la actualización fue exitosa.
     LaunchedEffect(uiState) {
         if (uiState is ProfileViewModel.UiState.Success) showDialog = false
     }
@@ -63,6 +69,7 @@ fun ProfileScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
+        // Cabecera con foto y nombre.
         ProfileHeader(
             displayName = displayName,
             gender = gender,
@@ -72,8 +79,10 @@ fun ProfileScreen() {
             onEditPhoto = { imagePickerLauncher.launch("image/*") }
         )
 
+        // Instrucciones para la selección de instrumentos.
         InstrumentInstructions(isDirector = isDirector)
 
+        // Cuadrícula de instrumentos.
         Box(
             Modifier
                 .weight(1f)
@@ -91,6 +100,7 @@ fun ProfileScreen() {
 
         Spacer(Modifier.height(12.dp))
 
+        // Fecha de registro.
         Text(
             "En Banda Municipal de Alcolea desde el ${vm.registrationDateFormatted}",
             style = MaterialTheme.typography.bodySmall,
@@ -98,6 +108,7 @@ fun ProfileScreen() {
             modifier = Modifier.fillMaxWidth()
         )
 
+        // Diálogo para editar el nombre.
         if (showDialog) {
             EditNameDialog(
                 currentName = displayName,
@@ -106,6 +117,7 @@ fun ProfileScreen() {
             )
         }
 
+        // Indicador de carga.
         if (uiState is ProfileViewModel.UiState.Loading) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 CircularProgressIndicator()
@@ -114,6 +126,15 @@ fun ProfileScreen() {
     }
 }
 
+/**
+ * Cabecera de la pantalla de perfil.
+ * @param displayName Nombre a mostrar.
+ * @param gender Género para la imagen por defecto.
+ * @param isDirector Si el usuario es director.
+ * @param photoUrl URL de la foto de perfil.
+ * @param onEditName Lambda para editar el nombre.
+ * @param onEditPhoto Lambda para editar la foto.
+ */
 @Composable
 private fun ProfileHeader(
     displayName: String,
@@ -128,6 +149,7 @@ private fun ProfileHeader(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box {
+            // Imagen de perfil principal.
             Card(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -146,6 +168,7 @@ private fun ProfileHeader(
                     error = painterResource(ImageHelper.getProfileImage(gender, isDirector))
                 )
             }
+            // Botón para editar la foto.
             Card(
                 shape = CircleShape,
                 modifier = Modifier
@@ -164,6 +187,7 @@ private fun ProfileHeader(
             }
         }
         Spacer(Modifier.height(8.dp))
+        // Nombre de usuario y botón de edición.
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -182,6 +206,10 @@ private fun ProfileHeader(
     }
 }
 
+/**
+ * Muestra las instrucciones sobre cómo seleccionar los instrumentos.
+ * @param isDirector Indica si el usuario es director para mostrar el límite correcto.
+ */
 @Composable
 private fun InstrumentInstructions(isDirector: Boolean) {
     Column(Modifier.fillMaxWidth()) {
@@ -202,6 +230,12 @@ private fun InstrumentInstructions(isDirector: Boolean) {
     }
 }
 
+/**
+ * Cuadrícula para mostrar y seleccionar instrumentos.
+ * @param selected Lista de instrumentos actualmente seleccionados.
+ * @param isDirector Si el usuario es director.
+ * @param onToggle Lambda para seleccionar/deseleccionar un instrumento.
+ */
 @Composable
 private fun InstrumentGrid(
     selected: List<String>,
@@ -223,6 +257,7 @@ private fun InstrumentGrid(
                 val isPrincipal = selected.firstOrNull() == instr
                 val disabled = instr == DIRECCION_MUSICAL && !isDirector
 
+                // Define el borde según el estado (deshabilitado, principal, seleccionado, normal).
                 val stroke = when {
                     disabled -> BorderStroke(
                         1.dp,
@@ -264,6 +299,7 @@ private fun InstrumentGrid(
                                 modifier = Modifier.padding(4.dp)
                             )
                         }
+                        // Muestra una estrella si es el instrumento principal.
                         if (isPrincipal) {
                             Icon(
                                 painter = painterResource(R.drawable.estrella),
@@ -281,6 +317,12 @@ private fun InstrumentGrid(
     }
 }
 
+/**
+ * Diálogo para editar el nombre del usuario.
+ * @param currentName Nombre actual.
+ * @param onConfirm Lambda para confirmar el nuevo nombre.
+ * @param onDismiss Lambda para cerrar el diálogo.
+ */
 @Composable
 private fun EditNameDialog(
     currentName: String,

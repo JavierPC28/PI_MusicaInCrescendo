@@ -7,7 +7,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material3.MenuAnchorType
 
 /**
- * Selector de sexo reutilizable.
+ * Composable que presenta un menú desplegable para la selección de género.
+ * @param options La lista de opciones de género a mostrar.
+ * @param selected La opción actualmente seleccionada.
+ * @param onSelected Callback que se ejecuta cuando se selecciona una nueva opción.
+ * @param modifier Modificador para personalizar el estilo.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +30,7 @@ fun GenderSelector(
     ) {
         OutlinedTextField(
             value = selected,
-            onValueChange = { /* no-op */ },
+            onValueChange = { /* No se permite cambio directo */ },
             readOnly = true,
             label = { Text("Sexo") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
@@ -39,6 +43,7 @@ fun GenderSelector(
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth()
         ) {
+            // Itera sobre las opciones y crea un DropdownMenuItem para cada una.
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },

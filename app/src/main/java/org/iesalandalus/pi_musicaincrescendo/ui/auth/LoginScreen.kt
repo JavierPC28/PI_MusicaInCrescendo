@@ -27,6 +27,13 @@ import org.iesalandalus.pi_musicaincrescendo.R
 import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.LoginViewModel
 
+/**
+ * Maneja el resultado del inicio de sesión con Google.
+ * @param result El resultado de la actividad de inicio de sesión.
+ * @param scope El alcance de la corutina para operaciones asíncronas.
+ * @param context El contexto de la aplicación.
+ * @param viewModel El ViewModel para procesar el token de Google.
+ */
 @Suppress("DEPRECATION")
 private fun handleGoogleSignIn(
     result: androidx.activity.result.ActivityResult,
@@ -43,15 +50,21 @@ private fun handleGoogleSignIn(
                 if (googleIdToken != null) {
                     viewModel.onGoogleLogin(googleIdToken)
                 } else {
-                    // Para manejar errores
+                    // Manejo de error futuro.
                 }
             } catch (_: ApiException) {
-                // Para manejar errores
+                // Manejo de error futuro.
             }
         }
     }
 }
 
+/**
+ * Inicia el flujo de inicio de sesión con Google One Tap.
+ * @param scope El alcance de la corutina.
+ * @param context El contexto de la aplicación.
+ * @param launcher El lanzador de actividad para mostrar la UI de inicio de sesión.
+ */
 @Suppress("DEPRECATION")
 private fun startGoogleSignIn(
     scope: CoroutineScope,
@@ -77,12 +90,18 @@ private fun startGoogleSignIn(
                 IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
             )
         } catch (_: Exception) {
-            // Manejar error, por ejemplo, si no hay servicios de Google Play
+            // Manejo de error si los servicios de Google Play no están disponibles.
         }
     }
 }
 
 
+/**
+ * Composable que define la pantalla de inicio de sesión.
+ * @param viewModel El ViewModel que gestiona la lógica de la pantalla.
+ * @param onNavigateToRegister Callback para navegar a la pantalla de registro.
+ * @param onLoginSuccess Callback que se ejecuta cuando el inicio de sesión es exitoso.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -90,6 +109,7 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
+    // Resetea el estado del ViewModel al entrar en la pantalla.
     LaunchedEffect(Unit) {
         viewModel.reset()
     }
@@ -98,6 +118,7 @@ fun LoginScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    // Recolecta los estados del ViewModel.
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -105,20 +126,24 @@ fun LoginScreen(
     val loginSuccess by viewModel.loginSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    // Determina si el formulario es válido para habilitar el botón de login.
     val isFormValid = email.isNotBlank() && isEmailValid && password.isNotBlank() && isPasswordValid
 
+    // Prepara el lanzador para el resultado del inicio de sesión con Google.
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         handleGoogleSignIn(result, coroutineScope, context, viewModel)
     }
 
+    // Navega cuando el inicio de sesión es exitoso.
     LaunchedEffect(loginSuccess) {
         if (loginSuccess) {
             onLoginSuccess()
         }
     }
 
+    // Maneja el botón de retroceso para cerrar la actividad.
     BackHandler { activity?.finish() }
 
     Scaffold(
@@ -152,6 +177,7 @@ fun LoginScreen(
                     .padding(bottom = 16.dp)
             )
 
+            // Campo de texto para el correo electrónico.
             EmailField(
                 value = email,
                 onValueChange = viewModel::onEmailChange,
@@ -160,6 +186,7 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Campo de texto para la contraseña.
             PasswordField(
                 value = password,
                 onValueChange = viewModel::onPasswordChange,
@@ -171,6 +198,7 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botón principal para iniciar sesión.
             PrimaryButton(
                 text = "Entrar",
                 onClick = viewModel::onLogin,
@@ -178,12 +206,14 @@ fun LoginScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Botón para navegar a la pantalla de registro.
             TextButton(onClick = onNavigateToRegister) {
                 Text(text = "¿No tienes cuenta? Regístrate")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Separador visual.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -200,10 +230,12 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Botón para iniciar sesión con Google.
             GoogleSignInButton(
                 onClick = { startGoogleSignIn(coroutineScope, context, googleSignInLauncher) }
             )
 
+            // Muestra un mensaje de error si existe.
             errorMessage?.let { msg ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(

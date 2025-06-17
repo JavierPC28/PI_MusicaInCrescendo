@@ -27,12 +27,18 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.EventsViewMo
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Constantes para el estado de asistencia
 private const val ATTENDANCE_STATUS_ATTENDING = "IRÉ"
 private const val ATTENDANCE_STATUS_NOT_ATTENDING = "NO IRÉ"
 
-
+/**
+ * Pantalla principal de eventos que muestra la lista de conciertos y ensayos.
+ * @param navController Controlador para la navegación.
+ * @param viewModel ViewModel que gestiona el estado de los eventos.
+ */
 @Composable
 fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = viewModel()) {
+    // Recoge el estado del ViewModel
     val events by viewModel.filteredEvents.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -41,6 +47,7 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
     val currentUserId by remember { mutableStateOf(viewModel.currentUserId) }
 
+    // Muestra el diálogo de confirmación de borrado si es necesario
     if (showDeleteDialog) {
         DeleteEventDialog(
             onConfirm = { viewModel.onConfirmDelete() },
@@ -53,18 +60,21 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Cabecera con título y botón de añadir
         EventsHeader(isDirector = isDirector) {
             navController.navigate(Screen.AddEvent.routeWithArgs())
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Filtros de eventos
         EventFilters(activeFilter = activeFilter) { filter ->
             viewModel.setFilter(filter)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Contenido principal (lista de eventos)
         EventsContent(
             modifier = Modifier.weight(1f),
             isLoading = isLoading,
@@ -78,6 +88,17 @@ fun EventsScreen(navController: NavHostController, viewModel: EventsViewModel = 
     }
 }
 
+/**
+ * Gestiona la visualización del contenido: carga, error, lista vacía o lista de eventos.
+ * @param modifier Modificador de Compose.
+ * @param isLoading Indica si los datos se están cargando.
+ * @param error Mensaje de error a mostrar.
+ * @param events Lista de eventos a mostrar.
+ * @param isDirector Indica si el usuario actual es director.
+ * @param currentUserId ID del usuario actual.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel asociado.
+ */
 @Composable
 private fun EventsContent(
     modifier: Modifier = Modifier,
@@ -92,22 +113,26 @@ private fun EventsContent(
     Box(modifier = modifier.fillMaxWidth()) {
         when {
             isLoading -> {
+                // Estado de carga
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
 
             error != null -> {
+                // Estado de error
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
 
             events.isEmpty() -> {
+                // Estado de lista vacía
                 EmptyState()
             }
 
             else -> {
+                // Muestra la lista de eventos
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(events) { event ->
                         EventCard(
@@ -134,6 +159,11 @@ private fun EventsContent(
     }
 }
 
+/**
+ * Cabecera de la pantalla de eventos.
+ * @param isDirector Indica si el usuario es director para mostrar el botón de añadir.
+ * @param onAddEvent Acción a ejecutar al pulsar el botón de añadir.
+ */
 @Composable
 private fun EventsHeader(isDirector: Boolean, onAddEvent: () -> Unit) {
     Row(
@@ -157,6 +187,11 @@ private fun EventsHeader(isDirector: Boolean, onAddEvent: () -> Unit) {
     }
 }
 
+/**
+ * Componente que muestra los botones de filtro (Todos, Conciertos, Ensayos).
+ * @param activeFilter El filtro actualmente seleccionado.
+ * @param onFilterSelected Lambda que se invoca al seleccionar un nuevo filtro.
+ */
 @Composable
 private fun EventFilters(
     activeFilter: EventFilterType,
@@ -182,6 +217,9 @@ private fun EventFilters(
     }
 }
 
+/**
+ * Componente que se muestra cuando no hay eventos.
+ */
 @Composable
 private fun EmptyState() {
     Box(
@@ -205,6 +243,11 @@ private fun EmptyState() {
     }
 }
 
+/**
+ * Diálogo de confirmación para eliminar un evento.
+ * @param onConfirm Acción a ejecutar al confirmar.
+ * @param onDismiss Acción a ejecutar al cancelar.
+ */
 @Composable
 private fun DeleteEventDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
@@ -227,6 +270,12 @@ private fun DeleteEventDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
+/**
+ * Sección que gestiona la visualización y actualización de la asistencia de un usuario a un evento.
+ * @param status El estado de asistencia actual ("IRÉ", "NO IRÉ" o nulo).
+ * @param isPast Indica si el evento ya ha pasado.
+ * @param onUpdate Lambda para actualizar el estado de asistencia.
+ */
 @Composable
 private fun AttendanceSection(
     status: String?,
@@ -247,6 +296,7 @@ private fun AttendanceSection(
         )
 
         else -> {
+            // Muestra botones de confirmación/rechazo si la asistencia no está marcada.
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     onClick = { onUpdate(ATTENDANCE_STATUS_NOT_ATTENDING) },
@@ -273,6 +323,16 @@ private fun AttendanceSection(
     }
 }
 
+/**
+ * Tarjeta que representa un único evento en la lista.
+ * @param event El objeto evento.
+ * @param isDirector Si el usuario es director.
+ * @param currentUserId El ID del usuario actual.
+ * @param onEdit Acción para editar el evento.
+ * @param onDelete Acción para eliminar el evento.
+ * @param onUpdateAttendance Acción para actualizar la asistencia.
+ * @param onViewDetails Acción para ver los detalles del evento.
+ */
 @Composable
 fun EventCard(
     event: Event,
@@ -283,6 +343,7 @@ fun EventCard(
     onUpdateAttendance: (String, String) -> Unit,
     onViewDetails: (String) -> Unit
 ) {
+    // Parsea la fecha y hora del evento
     fun parseEventDateTime(dateStr: String, timeStr: String): Date? {
         return try {
             val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -295,6 +356,7 @@ fun EventCard(
     val isPast = parseEventDateTime(event.date, event.endTime)?.before(Date()) == true
     val cardAlpha = if (isPast) 0.7f else 1f
 
+    // Formatea la fecha para mostrarla en la tarjeta
     fun formatDate(dateStr: String, timeStr: String): String {
         return try {
             val dateTimeStr = "$dateStr $timeStr"
@@ -312,6 +374,7 @@ fun EventCard(
         }
     }
 
+    // Define el borde de la tarjeta (nulo para eventos pasados)
     val cardBorder = if (isPast) {
         null
     } else {
@@ -366,6 +429,7 @@ fun EventCard(
                 Spacer(Modifier.height(32.dp))
             }
 
+            // Muestra los controles de edición y borrado si es director
             if (isDirector) {
                 Row(
                     modifier = Modifier
@@ -389,6 +453,7 @@ fun EventCard(
                 }
             }
 
+            // Sección de asistencia en la esquina inferior derecha
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)

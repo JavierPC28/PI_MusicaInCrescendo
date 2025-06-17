@@ -6,7 +6,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Tipografía personalizada
+/**
+ * Define la configuración de tipografía para la aplicación.
+ *
+ * Se utiliza en MaterialTheme para establecer los estilos de texto predeterminados.
+ */
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,

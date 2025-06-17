@@ -20,6 +20,12 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.AddEventView
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Composable para la pantalla de añadir o editar un evento.
+ * @param modifier Modificador de Composable.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel para gestionar el estado del formulario.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEventScreen(
@@ -29,6 +35,7 @@ fun AddEventScreen(
 ) {
     val context = LocalContext.current
 
+    // Recolecta los estados del ViewModel.
     val title by viewModel.title.collectAsState()
     val description by viewModel.description.collectAsState()
     val eventType by viewModel.eventType.collectAsState()
@@ -43,14 +50,17 @@ fun AddEventScreen(
     val saveSuccess by viewModel.saveSuccess.collectAsState()
     val saveError by viewModel.saveError.collectAsState()
 
+    // Estados para controlar la visibilidad de los diálogos de fecha y hora.
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
 
+    // Estados para los selectores de fecha y hora.
     val datePickerState = rememberDatePickerState()
     val startTimePickerState = rememberTimePickerState()
     val endTimePickerState = rememberTimePickerState()
 
+    // Efecto para manejar el éxito del guardado.
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {
             Toast.makeText(context, "Evento guardado correctamente", Toast.LENGTH_SHORT).show()
@@ -59,6 +69,7 @@ fun AddEventScreen(
         }
     }
 
+    // Efecto para manejar errores de guardado.
     LaunchedEffect(saveError) {
         saveError?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
@@ -66,12 +77,14 @@ fun AddEventScreen(
         }
     }
 
+    // Layout principal con scroll para el formulario.
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Campo: Título del evento.
         item {
             Text("Título del Evento", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -83,6 +96,7 @@ fun AddEventScreen(
             )
         }
 
+        // Campo: Descripción del evento.
         item {
             Text("Descripción (Opcional)", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -102,6 +116,7 @@ fun AddEventScreen(
             )
         }
 
+        // Campo: Tipo de evento (RadioButtons).
         item {
             Text("Tipo de Evento", fontWeight = FontWeight.Bold)
             Row(Modifier.fillMaxWidth()) {
@@ -122,6 +137,7 @@ fun AddEventScreen(
             }
         }
 
+        // Campos: Fecha y Hora.
         item {
             Text("Fecha y Hora", fontWeight = FontWeight.Bold)
             Box(modifier = Modifier.clickable { showDatePicker = true }) {
@@ -164,6 +180,7 @@ fun AddEventScreen(
             }
         }
 
+        // Campo: Localización.
         item {
             Text("Localización", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -174,6 +191,7 @@ fun AddEventScreen(
             )
         }
 
+        // Campo: Coordenadas.
         item {
             Text("Coordenadas (Opcional)", fontWeight = FontWeight.Bold)
             OutlinedTextField(
@@ -185,6 +203,7 @@ fun AddEventScreen(
             )
         }
 
+        // Sección: Repertorio.
         item {
             Text("Repertorio", fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
@@ -222,6 +241,7 @@ fun AddEventScreen(
         }
     }
 
+    // Diálogo para seleccionar la fecha.
     if (showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -252,6 +272,7 @@ fun AddEventScreen(
         }
     }
 
+    // Diálogo para seleccionar la hora de inicio.
     if (showStartTimePicker) {
         TimePickerDialog(
             onDismissRequest = { showStartTimePicker = false },
@@ -280,6 +301,7 @@ fun AddEventScreen(
         }
     }
 
+    // Diálogo para seleccionar la hora de finalización.
     if (showEndTimePicker) {
         TimePickerDialog(
             onDismissRequest = { showEndTimePicker = false },

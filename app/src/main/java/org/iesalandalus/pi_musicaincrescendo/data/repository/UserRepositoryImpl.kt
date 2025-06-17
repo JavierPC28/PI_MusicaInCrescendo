@@ -12,11 +12,25 @@ import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.domain.model.User
 import org.iesalandalus.pi_musicaincrescendo.domain.model.UserProfile
 
+/**
+ * Implementación de UserRepository para gestionar datos de perfiles de usuario en Firebase.
+ * @param database Instancia de FirebaseDatabase.
+ * @param storage Instancia de FirebaseStorage.
+ */
 class UserRepositoryImpl(
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance(),
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
 ) : UserRepository {
 
+    /**
+     * Crea un perfil de usuario en la base de datos con los datos proporcionados.
+     * @param uid ID único del usuario.
+     * @param displayName Nombre a mostrar.
+     * @param gender Género del usuario.
+     * @param isDirector `true` si el usuario es director.
+     * @param instruments Lista de instrumentos que toca.
+     * @param photoUrl URL de la foto de perfil (opcional).
+     */
     override suspend fun createUserProfile(
         uid: String,
         displayName: String,
@@ -27,6 +41,7 @@ class UserRepositoryImpl(
     ) {
         val userRef = database.getReference("users").child(uid)
 
+        // Asegura que un director siempre tenga "DIRECCIÓN MUSICAL" y limita el número de instrumentos.
         val sanitizedInstruments =
             if (isDirector && !instruments.contains(Constants.DIRECCION_MUSICAL)) {
                 listOf(Constants.DIRECCION_MUSICAL) + instruments
@@ -34,6 +49,7 @@ class UserRepositoryImpl(
                 instruments
             }.take(Constants.MAX_INSTRUMENTS)
 
+        // Construye el mapa de datos del perfil.
         val profileData = mapOf(
             "displayName" to displayName,
             "gender" to gender,
@@ -44,6 +60,11 @@ class UserRepositoryImpl(
         userRef.setValue(profileData).await()
     }
 
+    /**
+     * Actualiza la lista de instrumentos para un usuario específico.
+     * @param uid ID del usuario.
+     * @param instruments Nueva lista de instrumentos.
+     */
     override suspend fun updateInstruments(uid: String, instruments: List<String>) {
         database.getReference("users")
             .child(uid)
@@ -52,6 +73,11 @@ class UserRepositoryImpl(
             .await()
     }
 
+    /**
+     * Actualiza el nombre de visualización de un usuario.
+     * @param uid ID del usuario.
+     * @param displayName Nuevo nombre a mostrar.
+     */
     override suspend fun updateDisplayName(uid: String, displayName: String) {
         database.getReference("users")
             .child(uid)
@@ -60,6 +86,11 @@ class UserRepositoryImpl(
             .await()
     }
 
+    /**
+     * Actualiza la URL de la foto de perfil de un usuario.
+     * @param uid ID del usuario.
+     * @param photoUrl Nueva URL de la foto.
+     */
     override suspend fun updatePhotoUrl(uid: String, photoUrl: String) {
         database.getReference("users")
             .child(uid)
@@ -68,22 +99,41 @@ class UserRepositoryImpl(
             .await()
     }
 
+    /**
+     * Sube una imagen de perfil a Firebase Storage.
+     * @param uid ID del usuario, usado para nombrar el archivo.
+     * @param imageUri URI de la imagen a subir.
+     * @return La URL de descarga de la imagen subida.
+     */
     override suspend fun uploadProfileImage(uid: String, imageUri: Uri): String {
         val storageRef = storage.reference.child("profile_images/$uid.jpg")
         storageRef.putFile(imageUri).await()
         return storageRef.downloadUrl.await().toString()
     }
 
+    /**
+     * Obtiene el perfil completo de un usuario por su ID.
+     * @param uid ID del usuario.
+     * @return El objeto UserProfile.
+     */
     override suspend fun getUserProfile(uid: String): UserProfile {
         val snapshot = database.getReference("users").child(uid).get().await()
         return parseUserProfile(snapshot)
     }
 
+    /**
+     * Obtiene el número total de usuarios registrados.
+     * @return El número de usuarios.
+     */
     override suspend fun getUserCount(): Int {
         val snapshot = database.getReference("users").get().await()
         return snapshot.childrenCount.toInt()
     }
 
+    /**
+     * Obtiene una lista de todos los perfiles de usuario.
+     * @return Lista de objetos User.
+     */
     override suspend fun getAllUserProfiles(): List<User> {
         val snapshot = database.getReference("users").get().await()
         val result = mutableListOf<User>()
@@ -95,6 +145,10 @@ class UserRepositoryImpl(
         return result
     }
 
+    /**
+     * Obtiene el número de usuarios en tiempo real mediante un Flow.
+     * @return Un Flow que emite el recuento de usuarios cada vez que cambia.
+     */
     override fun getUserCountRealTime(): Flow<Int> = callbackFlow {
         val usersRef = database.getReference("users")
         val listener = object : ValueEventListener {
@@ -104,7 +158,7 @@ class UserRepositoryImpl(
 
             override fun onCancelled(error: DatabaseError) {
                 cancel(
-                    message = "Firebase listener cancelled at user count",
+                    message = "El listener de Firebase para el contador de usuarios fue cancelado.",
                     cause = error.toException()
                 )
             }
@@ -113,6 +167,10 @@ class UserRepositoryImpl(
         awaitClose { usersRef.removeEventListener(listener) }
     }
 
+    /**
+     * Obtiene una lista de todos los usuarios en tiempo real mediante un Flow.
+     * @return Un Flow que emite la lista completa de usuarios cada vez que hay cambios.
+     */
     override fun getUsersRealTime(): Flow<List<User>> = callbackFlow {
         val usersRef = database.getReference("users")
         val listener = object : ValueEventListener {
@@ -128,7 +186,7 @@ class UserRepositoryImpl(
 
             override fun onCancelled(error: DatabaseError) {
                 cancel(
-                    message = "Firebase listener cancelled at users",
+                    message = "El listener de Firebase para usuarios fue cancelado.",
                     cause = error.toException()
                 )
             }
@@ -137,15 +195,29 @@ class UserRepositoryImpl(
         awaitClose { usersRef.removeEventListener(listener) }
     }
 
+    /**
+     * Elimina el perfil de un usuario de la base de datos.
+     * @param uid ID del usuario a eliminar.
+     */
     override suspend fun deleteUserProfile(uid: String) {
         database.getReference("users").child(uid).removeValue().await()
     }
 
+    /**
+     * Comprueba si un usuario con un UID específico ya existe en la base de datos.
+     * @param uid ID del usuario a comprobar.
+     * @return `true` si el usuario existe, `false` en caso contrario.
+     */
     override suspend fun userExists(uid: String): Boolean {
         val snapshot = database.getReference("users").child(uid).get().await()
         return snapshot.exists()
     }
 
+    /**
+     * Parsea un DataSnapshot para convertirlo en un objeto UserProfile.
+     * @param snapshot El snapshot de Firebase a parsear.
+     * @return Un objeto UserProfile con los datos extraídos.
+     */
     private fun parseUserProfile(snapshot: DataSnapshot): UserProfile {
         return UserProfile(
             displayName = snapshot.child("displayName").getValue(String::class.java) ?: "",

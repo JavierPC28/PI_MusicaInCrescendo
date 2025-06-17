@@ -10,6 +10,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
+/**
+ * Diálogo personalizado que envuelve un selector de tiempo.
+ * @param title Título del diálogo.
+ * @param onDismissRequest Acción al solicitar el cierre del diálogo.
+ * @param confirmButton Composable para el botón de confirmación.
+ * @param dismissButton Composable opcional para el botón de cancelación.
+ * @param content El contenido principal del diálogo (normalmente un TimePicker).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(
@@ -40,6 +48,7 @@ fun TimePickerDialog(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Título del diálogo.
                 Text(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -47,7 +56,9 @@ fun TimePickerDialog(
                     text = title,
                     style = MaterialTheme.typography.labelMedium
                 )
+                // Contenido principal (selector de tiempo).
                 content()
+                // Botones de acción.
                 Row(
                     modifier = Modifier
                         .height(40.dp)

@@ -1,7 +1,7 @@
 package org.iesalandalus.pi_musicaincrescendo.domain.model
 
 /**
- * Opciones de filtro para el repertorio.
+ * Enum que define las opciones de ordenación para la lista de repertorio.
  */
 enum class FilterOption {
     TITULO,

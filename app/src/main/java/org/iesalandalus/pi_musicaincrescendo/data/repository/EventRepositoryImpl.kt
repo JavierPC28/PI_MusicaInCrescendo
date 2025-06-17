@@ -11,6 +11,11 @@ import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.domain.model.Event
 import org.iesalandalus.pi_musicaincrescendo.domain.repository.EventRepository
 
+/**
+ * Implementación de [EventRepository] que utiliza Firebase Realtime Database.
+ * @param auth Instancia de FirebaseAuth para la autenticación.
+ * @param database Instancia de FirebaseDatabase para el acceso a datos.
+ */
 class EventRepositoryImpl(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
     private val database: FirebaseDatabase = FirebaseDatabase.getInstance()
@@ -20,6 +25,9 @@ class EventRepositoryImpl(
         const val ERROR_USER_NOT_AUTHENTICATED = "Usuario no autenticado"
     }
 
+    /**
+     * Añade un nuevo evento a la base de datos.
+     */
     override suspend fun addEvent(
         title: String,
         description: String?,
@@ -50,6 +58,10 @@ class EventRepositoryImpl(
         eventRef.setValue(eventData).await()
     }
 
+    /**
+     * Obtiene una lista de eventos en tiempo real.
+     * @return Un Flow que emite la lista de eventos cada vez que hay cambios.
+     */
     override fun getEventsRealTime(): Flow<List<Event>> = callbackFlow {
         auth.currentUser?.uid ?: run {
             close(Exception(ERROR_USER_NOT_AUTHENTICATED))
@@ -80,6 +92,11 @@ class EventRepositoryImpl(
         awaitClose { eventsRef.removeEventListener(listener) }
     }
 
+    /**
+     * Obtiene un evento específico por su ID.
+     * @param eventId El ID del evento a obtener.
+     * @return El objeto [Event] o null si no se encuentra.
+     */
     override suspend fun getEventById(eventId: String): Event? {
         auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val snapshot = database.reference
@@ -91,6 +108,10 @@ class EventRepositoryImpl(
         return snapshot.getValue(Event::class.java)?.copy(id = snapshot.key ?: "")
     }
 
+    /**
+     * Actualiza los datos de un evento existente.
+     * @param event El evento con los datos actualizados.
+     */
     override suspend fun updateEvent(event: Event) {
         auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         val eventRef = database.reference
@@ -114,6 +135,10 @@ class EventRepositoryImpl(
         eventRef.updateChildren(eventData).await()
     }
 
+    /**
+     * Elimina un evento de la base de datos.
+     * @param eventId El ID del evento a eliminar.
+     */
     override suspend fun deleteEvent(eventId: String) {
         auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         database.reference
@@ -124,6 +149,12 @@ class EventRepositoryImpl(
             .await()
     }
 
+    /**
+     * Actualiza el estado de asistencia de un usuario a un evento.
+     * @param eventId El ID del evento.
+     * @param userId El ID del usuario.
+     * @param status El nuevo estado de asistencia.
+     */
     override suspend fun updateAttendance(eventId: String, userId: String, status: String) {
         auth.currentUser?.uid ?: throw Exception(ERROR_USER_NOT_AUTHENTICATED)
         database.reference

@@ -11,6 +11,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
 
+/**
+ * Botón estilizado para iniciar sesión con Google.
+ * Muestra el logo de Google y un texto descriptivo.
+ * @param onClick La acción a ejecutar al pulsar el botón.
+ * @param modifier Modificador para personalizar el estilo.
+ */
 @Composable
 fun GoogleSignInButton(
     onClick: () -> Unit,

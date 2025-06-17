@@ -24,7 +24,10 @@ import org.iesalandalus.pi_musicaincrescendo.domain.model.Repertoire
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireViewModel
 
 /**
- * Diálogo de selección de filtro.
+ * Diálogo para seleccionar el criterio de ordenación del repertorio.
+ * @param selectedFilter El filtro de ordenación actualmente seleccionado.
+ * @param onOptionSelected Lambda que se ejecuta cuando se selecciona una nueva opción.
+ * @param onDismiss Lambda para cerrar el diálogo.
  */
 @Composable
 private fun FilterDialog(
@@ -37,6 +40,7 @@ private fun FilterDialog(
         title = { Text(text = "Ordenar por") },
         text = {
             Column {
+                // Itera sobre todas las opciones de filtro
                 FilterOption.entries.forEach { option ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -66,6 +70,14 @@ private fun FilterDialog(
     )
 }
 
+/**
+ * Representa una única obra en la lista del repertorio.
+ * @param work El objeto de la obra a mostrar.
+ * @param isDirector Indica si el usuario actual es un director.
+ * @param onViewDetails Lambda para navegar a los detalles de la obra.
+ * @param onEdit Lambda para navegar a la pantalla de edición de la obra.
+ * @param onDelete Lambda para solicitar la eliminación de la obra.
+ */
 @Composable
 private fun WorkItem(
     work: Repertoire,
@@ -99,6 +111,7 @@ private fun WorkItem(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
+            // Muestra los botones de editar y eliminar si el usuario es director.
             if (isDirector) {
                 IconButton(onClick = { onEdit(work.id) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar obra")
@@ -108,7 +121,6 @@ private fun WorkItem(
                         Icons.Default.Delete,
                         contentDescription = "Eliminar obra",
                         tint = MaterialTheme.colorScheme.error
-
                     )
                 }
             }
@@ -116,6 +128,14 @@ private fun WorkItem(
     }
 }
 
+/**
+ * Muestra la lista de obras del repertorio o un estado vacío si no hay ninguna.
+ * @param modifier Modificador de Compose.
+ * @param repertoireList La lista de obras a mostrar.
+ * @param isDirector Indica si el usuario es director.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel asociado.
+ */
 @Composable
 private fun RepertoireList(
     modifier: Modifier = Modifier,
@@ -126,6 +146,7 @@ private fun RepertoireList(
 ) {
     Box(modifier = modifier) {
         if (repertoireList.isEmpty()) {
+            // Estado vacío si no hay obras.
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -145,6 +166,7 @@ private fun RepertoireList(
                 )
             }
         } else {
+            // Lista de obras.
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -170,13 +192,16 @@ private fun RepertoireList(
 }
 
 /**
- * Vista de repertorio.
+ * Pantalla principal de la sección de Repertorio.
+ * @param navController Controlador de navegación.
+ * @param viewModel ViewModel para la pantalla de repertorio.
  */
 @Composable
 fun RepertoireScreen(
     navController: NavHostController,
     viewModel: RepertoireViewModel = viewModel()
 ) {
+    // Recoge el estado del ViewModel.
     val searchText by viewModel.searchText.collectAsState()
     val isIconToggled by viewModel.isIconToggled.collectAsState()
     val showFilterDialog by viewModel.showFilterDialog.collectAsState()
@@ -185,6 +210,7 @@ fun RepertoireScreen(
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
     val isDirector by viewModel.isDirector.collectAsState()
 
+    // Diálogo de confirmación para eliminar una obra.
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.onDismissDeleteDialog() },
@@ -211,6 +237,7 @@ fun RepertoireScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Cabecera.
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -221,6 +248,7 @@ fun RepertoireScreen(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+            // Botón para añadir tema, solo visible para directores.
             if (isDirector) {
                 Button(
                     onClick = {
@@ -235,6 +263,7 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // Barra de búsqueda y controles de ordenación y filtro.
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -266,6 +295,7 @@ fun RepertoireScreen(
                 }
             )
 
+            // Icono para cambiar el orden (ascendente/descendente).
             Icon(
                 painter = painterResource(
                     id = if (isIconToggled) R.drawable.ascendente else R.drawable.descendente
@@ -276,6 +306,7 @@ fun RepertoireScreen(
                     .clickable { viewModel.onToggleIcon() }
             )
 
+            // Icono para abrir el diálogo de filtro.
             Icon(
                 painter = painterResource(R.drawable.filtro),
                 contentDescription = "Filtrar",
@@ -287,6 +318,7 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Diálogo de filtro.
         if (showFilterDialog) {
             FilterDialog(
                 selectedFilter = selectedFilter,
@@ -297,6 +329,7 @@ fun RepertoireScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Lista de repertorio.
         RepertoireList(
             modifier = Modifier.weight(1f),
             repertoireList = repertoireList,

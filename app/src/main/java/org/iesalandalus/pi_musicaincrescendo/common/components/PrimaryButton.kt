@@ -10,7 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 /**
- * Botón principal estilizado.
+ * Botón principal reutilizable con un estilo coherente en toda la aplicación.
+ * @param text El texto que se mostrará en el botón.
+ * @param onClick La acción a ejecutar al pulsar el botón.
+ * @param modifier Modificador para personalizar el estilo.
+ * @param enabled Controla si el botón está habilitado o no.
  */
 @Composable
 fun PrimaryButton(

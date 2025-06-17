@@ -8,6 +8,14 @@ import org.iesalandalus.pi_musicaincrescendo.data.repository.*
 import org.iesalandalus.pi_musicaincrescendo.domain.model.*
 import org.iesalandalus.pi_musicaincrescendo.domain.usecase.*
 
+/**
+ * ViewModel para la pantalla de añadir o editar eventos.
+ * @param addEventUseCase Caso de uso para añadir un evento.
+ * @param getRepertoireUseCase Caso de uso para obtener el repertorio.
+ * @param getEventByIdUseCase Caso de uso para obtener un evento por ID (para edición).
+ * @param updateEventUseCase Caso de uso para actualizar un evento.
+ * @param addNotificationUseCase Caso de uso para crear notificaciones.
+ */
 class AddEventViewModel(
     private val addEventUseCase: AddEventUseCase = AddEventUseCase(EventRepositoryImpl()),
     private val getRepertoireUseCase: GetRepertoireUseCase = GetRepertoireUseCase(
@@ -20,9 +28,13 @@ class AddEventViewModel(
     )
 ) : ViewModel() {
 
+    // Almacena el ID del evento si estamos en modo edición.
     private var eventId: String? = null
+
+    // Almacena el estado original del evento antes de la edición.
     private var originalEvent: Event? = null
 
+    // Estados para cada campo del formulario del evento.
     private val _title = MutableStateFlow("")
     val title: StateFlow<String> = _title.asStateFlow()
 
@@ -47,18 +59,25 @@ class AddEventViewModel(
     private val _coordinates = MutableStateFlow("")
     val coordinates: StateFlow<String> = _coordinates.asStateFlow()
 
+    // Lista completa de obras del repertorio para seleccionar.
     private val _allRepertoire = MutableStateFlow<List<Repertoire>>(emptyList())
     val allRepertoire: StateFlow<List<Repertoire>> = _allRepertoire.asStateFlow()
 
+    // Obras seleccionadas para este evento.
     private val _selectedRepertoire = MutableStateFlow<Map<String, String>>(emptyMap())
     val selectedRepertoire: StateFlow<Map<String, String>> = _selectedRepertoire.asStateFlow()
 
+    // Estado para comunicar el éxito o error de la operación de guardado.
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess.asStateFlow()
 
     private val _saveError = MutableStateFlow<String?>(null)
     val saveError: StateFlow<String?> = _saveError.asStateFlow()
 
+    /**
+     * Un [StateFlow] que indica si el formulario es válido.
+     * Combina los estados de los campos clave y aplica las reglas de validación.
+     */
     val isFormValid: StateFlow<Boolean> = combine(
         _title,
         _eventType,
@@ -78,6 +97,7 @@ class AddEventViewModel(
         val repertoireValue = values[6] as Map<*, *>
         val coordinatesValue = values[7] as String
 
+        // Expresión regular para validar coordenadas (lat,lon).
         val coordinatesRegex = """^-?\d{1,3}(\.\d+)?,\s*-?\d{1,3}(\.\d+)?$""".toRegex()
 
         titleValue.isNotBlank() &&
@@ -91,6 +111,7 @@ class AddEventViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     init {
+        // Al iniciar, carga la lista de repertorio disponible.
         viewModelScope.launch {
             getRepertoireUseCase().collect {
                 _allRepertoire.value = it
@@ -98,6 +119,10 @@ class AddEventViewModel(
         }
     }
 
+    /**
+     * Carga los datos de un evento existente para su edición.
+     * @param id El ID del evento a cargar. Si es nulo, no hace nada.
+     */
     fun loadEventForEditing(id: String?) {
         if (id == null || id == eventId) return
         this.eventId = id
@@ -124,6 +149,7 @@ class AddEventViewModel(
         }
     }
 
+    // Funciones para actualizar el estado desde la UI.
     fun onTitleChange(newTitle: String) {
         _title.value = newTitle
     }
@@ -158,6 +184,11 @@ class AddEventViewModel(
         _coordinates.value = newCoordinates
     }
 
+    /**
+     * Añade o quita una obra de la lista de repertorio seleccionado para el evento.
+     * @param repertoireItem La obra a añadir o quitar.
+     * @param isSelected `true` para añadir, `false` para quitar.
+     */
     fun onRepertoireToggle(repertoireItem: Repertoire, isSelected: Boolean) {
         val current = _selectedRepertoire.value.toMutableMap()
         if (isSelected) {
@@ -168,6 +199,10 @@ class AddEventViewModel(
         _selectedRepertoire.value = current
     }
 
+    /**
+     * Guarda el evento. Decide si crear uno nuevo o actualizar uno existente
+     * basándose en si `eventId` es nulo.
+     */
     fun onSaveEvent() {
         if (!isFormValid.value) return
 
@@ -175,6 +210,7 @@ class AddEventViewModel(
             try {
                 val eventTitle = _title.value.trim()
                 if (eventId == null) {
+                    // Crea un nuevo evento.
                     val params = AddEventParams(
                         title = eventTitle,
                         description = _description.value.trim().ifEmpty { null },
@@ -189,6 +225,7 @@ class AddEventViewModel(
                     addEventUseCase(params)
                     addNotificationUseCase("Se ha creado el evento \"$eventTitle\"")
                 } else {
+                    // Actualiza un evento existente.
                     val updatedEvent = Event(
                         id = eventId!!,
                         title = eventTitle,
@@ -212,6 +249,9 @@ class AddEventViewModel(
         }
     }
 
+    /**
+     * Resetea los estados de éxito y error, típicamente después de una navegación.
+     */
     fun onNavigationHandled() {
         _saveSuccess.value = false
         _saveError.value = null

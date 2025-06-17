@@ -13,8 +13,14 @@ import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
 
 /**
- * Campo de texto para contraseña con visibilidad controlada
- * y validación de criterios mínimos.
+ * Campo de texto reutilizable para la introducción de contraseñas.
+ * Permite alternar la visibilidad del contenido y muestra errores de validación.
+ * @param value El valor actual del campo.
+ * @param onValueChange Callback que se ejecuta cuando el valor cambia.
+ * @param label El texto que se muestra como etiqueta del campo.
+ * @param modifier Modificador para personalizar el estilo.
+ * @param isError Indica si el valor actual es inválido.
+ * @param errorMessage Mensaje de error a mostrar si isError es true.
  */
 @Composable
 fun PasswordField(
@@ -38,6 +44,7 @@ fun PasswordField(
                         id = if (visible) R.drawable.ojo_abierto else R.drawable.ojo_cerrado
                     ),
                     contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña",
+                    // Permite mostrar la contraseña solo mientras se mantiene pulsado.
                     modifier = Modifier.pointerInput(Unit) {
                         detectTapGestures(onPress = {
                             visible = true
@@ -54,6 +61,7 @@ fun PasswordField(
             isError = isError,
             modifier = Modifier.fillMaxWidth()
         )
+        // Muestra el mensaje de error si es necesario.
         if (isError && errorMessage != null) {
             Text(
                 text = errorMessage,

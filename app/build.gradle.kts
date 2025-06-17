@@ -36,25 +36,27 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        // Habilita el uso de Jetpack Compose
         compose = true
     }
 }
 
 dependencies {
+    // System UI Controller para personalizar la barra de estado y navegación
     implementation(libs.accompanist.systemuicontroller)
 
-    // Google Maps SDK
+    // SDK de Google Maps para Compose
     implementation(libs.play.services.maps)
     implementation(libs.maps.compose)
 
-    // Core y Activity KTX
+    // Extensiones KTX para Core y Activity
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.ktx)
 
-    // Coil para carga de imágenes
+    // Coil para la carga de imágenes asíncrona
     implementation(libs.coil.compose)
 
-    // Compose y Navegación
+    // Bill of Materials (BOM) para Jetpack Compose y dependencias de UI
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -63,30 +65,30 @@ dependencies {
     implementation(libs.androidx.activity.compose.v172)
     implementation(libs.androidx.navigation.compose)
 
-    // Ciclo de vida
+    // Componentes de ciclo de vida para ViewModels en Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    // Firebase (BOM + módulos)
+    // Firebase (BOM y módulos específicos)
     implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.database.ktx)
-    implementation(libs.firebase.storage.ktx)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
+    implementation(libs.firebase.auth.ktx) // Autenticación
+    implementation(libs.firebase.database.ktx) // Realtime Database
+    implementation(libs.firebase.storage.ktx) // Cloud Storage
+    implementation(libs.androidx.credentials) // Credential Manager
+    implementation(libs.androidx.credentials.play.services.auth) // Integración con Google Play Services
+    implementation(libs.googleid) // Librería para Google Identity
 
-    // Google Sign-In
+    // Autenticación con Google Sign-In
     implementation(libs.play.services.auth)
 
-    // Tests
+    // Dependencias para testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
 
-    // Debug
+    // Dependencias para debug y herramientas de Compose
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }

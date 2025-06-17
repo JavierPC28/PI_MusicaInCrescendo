@@ -34,6 +34,10 @@ import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper.getInstrumentDrawable
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.HomeViewModel
 
+/**
+ * Pantalla de inicio de la aplicación.
+ * Muestra información sobre la banda, ubicación del local de ensayo, redes sociales y lista de miembros.
+ */
 @Composable
 fun HomeScreen() {
     val context = LocalContext.current
@@ -41,7 +45,7 @@ fun HomeScreen() {
     val miembros by homeViewModel.userCount.collectAsState()
     val membersList by homeViewModel.members.collectAsState()
 
-    // Ordenamos miembros
+    // Ordena los miembros según el orden de la lista de instrumentos.
     val sortedMembers = remember(membersList) {
         membersList.sortedBy { user ->
             val principal = user.profile.instruments.firstOrNull().orEmpty()
@@ -51,7 +55,7 @@ fun HomeScreen() {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // HEADER siempre visible
+        // Cabecera fija
         HeaderSection()
 
         // Contenido desplazable
@@ -71,12 +75,13 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Card mapa y dirección
+            // Tarjeta con mapa y dirección
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    // Mapa de Google
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -89,11 +94,9 @@ fun HomeScreen() {
                             modifier = Modifier.fillMaxSize(),
                             update = { mv ->
                                 mv.getMapAsync { map ->
-                                    // Deshabilitamos gestos de desplazamiento
                                     map.uiSettings.isScrollGesturesEnabled = false
                                     map.uiSettings.isRotateGesturesEnabled = false
                                     map.uiSettings.isTiltGesturesEnabled = false
-                                    // Deshabilitamos zoom con gestos y habilitamos controles de zoom
                                     map.uiSettings.isZoomGesturesEnabled = false
                                     map.uiSettings.isZoomControlsEnabled = true
                                     val coords = LatLng(36.972436853721284, -2.9618738303413217)
@@ -108,6 +111,7 @@ fun HomeScreen() {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Dirección y enlace "Cómo llegar"
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
@@ -136,7 +140,7 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Redes sociales
+            // Enlaces a redes sociales
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
@@ -170,6 +174,7 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Lista de miembros
             sortedMembers.forEach { user ->
                 val profile = user.profile
                 MemberRow(
@@ -185,6 +190,9 @@ fun HomeScreen() {
     }
 }
 
+/**
+ * Sección de cabecera que muestra el logo e información de la banda.
+ */
 @Composable
 private fun HeaderSection() {
     Row(
@@ -220,6 +228,12 @@ private fun HeaderSection() {
     }
 }
 
+/**
+ * Componente para un enlace a una red social con icono y etiqueta.
+ * @param iconRes Recurso del icono.
+ * @param label Etiqueta de la red social.
+ * @param url URL a la que enlaza.
+ */
 @Composable
 private fun SocialLink(iconRes: Int, label: String, url: String) {
     val context = LocalContext.current
@@ -239,6 +253,14 @@ private fun SocialLink(iconRes: Int, label: String, url: String) {
     }
 }
 
+/**
+ * Fila que muestra la información de un miembro de la banda.
+ * @param displayName Nombre del miembro.
+ * @param gender Género para la imagen de perfil por defecto.
+ * @param isDirector Si el miembro es director.
+ * @param instrument Instrumento principal del miembro.
+ * @param photoUrl URL de la foto de perfil.
+ */
 @Composable
 private fun MemberRow(
     displayName: String,
@@ -254,6 +276,7 @@ private fun MemberRow(
             .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
             .padding(8.dp)
     ) {
+        // Foto de perfil
         AsyncImage(
             model = photoUrl,
             placeholder = painterResource(id = ImageHelper.getProfileImage(gender, isDirector)),
@@ -265,12 +288,14 @@ private fun MemberRow(
                 .clip(RoundedCornerShape(8.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
+        // Icono del instrumento
         Image(
             painter = painterResource(id = getInstrumentDrawable(instrument)),
             contentDescription = instrument,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
+        // Nombre e instrumento
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = displayName,
@@ -286,6 +311,10 @@ private fun MemberRow(
     }
 }
 
+/**
+ * Composable que gestiona el ciclo de vida de un MapView de Google Maps.
+ * @return Una instancia de MapView.
+ */
 @Composable
 private fun rememberMapViewWithLifecycle(): MapView {
     val context = LocalContext.current
@@ -293,6 +322,7 @@ private fun rememberMapViewWithLifecycle(): MapView {
     val mapView = remember(context) {
         MapView(context).apply { id = View.generateViewId() }
     }
+    // Vincula el ciclo de vida del MapView al del Composable
     DisposableEffect(lifecycleOwner) {
         val lifecycle = lifecycleOwner.lifecycle
         val observer = LifecycleEventObserver { _: LifecycleOwner, event ->

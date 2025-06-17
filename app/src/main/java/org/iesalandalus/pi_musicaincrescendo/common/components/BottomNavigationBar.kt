@@ -12,19 +12,26 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.iesalandalus.pi_musicaincrescendo.R
 
-// Altura personalizada para la barra de navegación
+// Define la altura de la barra de navegación.
 private val BottomBarHeight = 80.dp
 
-// Tamaño de iconos y bordes
+// Define el tamaño de los iconos.
 private val IconSize = 40.dp
 
-// Espacio de marco: 3dp por cada lado para sobresalir del icono
+// Define el padding para el marco del icono seleccionado.
 private val FramePadding = 6.dp
 private val FrameSize = IconSize + FramePadding * 2
 
-// Radio de esquinas para imágenes y marco
+// Define el radio de las esquinas para las imágenes y el marco.
 private val ImageCornerRadius = 8.dp
 
+/**
+ * Define los elementos de navegación de la barra inferior.
+ * @param route La ruta de navegación.
+ * @param iconResNormal El recurso del icono para el estado normal.
+ * @param iconResPressed El recurso del icono para el estado seleccionado.
+ * @param description La descripción del ítem para accesibilidad.
+ */
 enum class NavItem(
     val route: String,
     val iconResNormal: Int,
@@ -43,6 +50,10 @@ enum class NavItem(
     Profile("profile", R.drawable.ajustes, R.drawable.ajustes_pulsado, "Perfil")
 }
 
+/**
+ * Barra de navegación inferior personalizada.
+ * @param navController Controlador de navegación para gestionar las rutas.
+ */
 @Composable
 fun BottomNavigationBar(
     navController: NavController
@@ -61,7 +72,9 @@ fun BottomNavigationBar(
                 onClick = { route ->
                     if (currentRoute != route) {
                         navController.navigate(route) {
+                            // Evita acumular rutas en la pila de navegación.
                             popUpTo(navController.graph.startDestinationId) { inclusive = false }
+                            // Asegura que solo haya una instancia de la pantalla.
                             launchSingleTop = true
                         }
                     }
@@ -71,6 +84,12 @@ fun BottomNavigationBar(
     }
 }
 
+/**
+ * Icono individual para la barra de navegación inferior.
+ * @param item El objeto NavItem a representar.
+ * @param isSelected Indica si el ítem está seleccionado.
+ * @param onClick La acción a ejecutar al pulsar el icono.
+ */
 @Composable
 private fun RowScope.BottomBarIcon(
     item: NavItem,
@@ -86,7 +105,7 @@ private fun RowScope.BottomBarIcon(
             .height(FrameSize),
         contentAlignment = Alignment.Center
     ) {
-        // Marco de fondo para el ítem seleccionado (vista Home)
+        // Muestra un marco de fondo si el ítem de inicio está seleccionado.
         if (item == NavItem.Home && isSelected) {
             Box(
                 modifier = Modifier
@@ -99,7 +118,7 @@ private fun RowScope.BottomBarIcon(
             )
         }
 
-        // Imagen cuadrada con bordes redondeados a 8dp y margen de marco
+        // Contenedor del icono con gestión de clics.
         Box(
             modifier = Modifier
                 .size(IconSize)

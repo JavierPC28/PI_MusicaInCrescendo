@@ -11,8 +11,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 
 /**
- * Campo de texto para correo electrónico con sugerencias desactivadas
- * y validación de formato.
+ * Campo de texto reutilizable para la introducción de un correo electrónico.
+ * Incluye validación visual de formato y un icono representativo.
+ * @param value El valor actual del campo.
+ * @param onValueChange Callback que se ejecuta cuando el valor cambia.
+ * @param modifier Modificador para personalizar el estilo.
+ * @param isError Indica si el valor actual es inválido.
+ * @param errorMessage Mensaje de error a mostrar si isError es true.
  */
 @Composable
 fun EmailField(
@@ -40,6 +45,7 @@ fun EmailField(
             isError = isError,
             modifier = Modifier.fillMaxWidth()
         )
+        // Muestra el mensaje de error si es necesario.
         if (isError && errorMessage != null) {
             Text(
                 text = errorMessage,

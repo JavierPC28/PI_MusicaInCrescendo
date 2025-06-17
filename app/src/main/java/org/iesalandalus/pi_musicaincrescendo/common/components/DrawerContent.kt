@@ -20,6 +20,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.iesalandalus.pi_musicaincrescendo.R
 
+/**
+ * Modelo de datos para representar un ítem en el Drawer.
+ */
 private data class Grupo(
     val id: Int,
     val iconRes: Int? = null,
@@ -28,6 +31,12 @@ private data class Grupo(
     val isDestructive: Boolean = false
 )
 
+/**
+ * Contenido del menú lateral (Drawer).
+ * @param onLogout Acción para cerrar sesión.
+ * @param onExit Acción para salir de la aplicación.
+ * @param onDeleteAccount Acción para eliminar la cuenta del usuario.
+ */
 @Composable
 fun DrawerContent(
     onLogout: () -> Unit,
@@ -35,6 +44,7 @@ fun DrawerContent(
     onDeleteAccount: () -> Unit
 ) {
     val context = LocalContext.current
+    // Lista de grupos musicales disponibles.
     val grupos = remember {
         listOf(
             Grupo(
@@ -46,6 +56,7 @@ fun DrawerContent(
             Grupo(2, iconVector = Icons.Default.Add, texto = "Crea un grupo nuevo")
         )
     }
+    // Opciones en la parte inferior del Drawer.
     val opcionesInferiores = remember {
         listOf(
             Grupo(3, iconRes = R.drawable.cerrar_sesion, texto = "Cerrar Sesión"),
@@ -58,6 +69,7 @@ fun DrawerContent(
             )
         )
     }
+    // Estado para mantener el grupo seleccionado.
     var seleccionado by rememberSaveable { mutableIntStateOf(0) }
 
     Column(
@@ -73,7 +85,7 @@ fun DrawerContent(
             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
         )
 
-        // Lista de grupos principales
+        // Renderiza la lista de grupos.
         grupos.forEach { grupo ->
             Spacer(modifier = Modifier.height(8.dp))
             GrupoItem(
@@ -95,7 +107,7 @@ fun DrawerContent(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Opciones inferiores (Cerrar sesión y Salir)
+        // Renderiza las opciones inferiores.
         opcionesInferiores.forEach { grupo ->
             Spacer(modifier = Modifier.height(8.dp))
             GrupoItem(
@@ -113,6 +125,12 @@ fun DrawerContent(
     }
 }
 
+/**
+ * Composable para un ítem individual del Drawer.
+ * @param grupo El objeto Grupo a mostrar.
+ * @param isSelected Indica si el ítem está actualmente seleccionado.
+ * @param onClick La acción a ejecutar al pulsar el ítem.
+ */
 @Composable
 private fun GrupoItem(
     grupo: Grupo,
@@ -137,6 +155,7 @@ private fun GrupoItem(
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        // Muestra el icono, ya sea desde un recurso o un vector.
         grupo.iconRes?.let {
             Box(
                 modifier = Modifier

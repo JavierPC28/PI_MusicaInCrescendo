@@ -20,12 +20,18 @@ import org.iesalandalus.pi_musicaincrescendo.common.components.*
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RegisterViewModel
 
+// Opciones disponibles para el selector de género.
 private val genderOptions = listOf(
     "Hombre",
     "Mujer",
     "Prefiero no decirlo"
 )
 
+/**
+ * Composable para el checkbox que permite al usuario registrarse como director.
+ * @param isDirector Estado actual del checkbox.
+ * @param onDirectorChecked Callback que se ejecuta al cambiar el estado.
+ */
 @Composable
 private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -> Unit) {
     Row(
@@ -44,6 +50,12 @@ private fun DirectorCheckbox(isDirector: Boolean, onDirectorChecked: (Boolean) -
     }
 }
 
+/**
+ * Composable que define la pantalla de registro de usuario.
+ * @param viewModel El ViewModel que gestiona la lógica de registro.
+ * @param onNavigateToLogin Callback para navegar de vuelta a la pantalla de login.
+ * @param onRegisterSuccess Callback que se ejecuta cuando el registro es exitoso.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
@@ -54,6 +66,7 @@ fun RegisterScreen(
     val activity = LocalActivity.current
     val context = LocalContext.current
 
+    // Recolecta los estados del ViewModel.
     val email by viewModel.email.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -65,7 +78,7 @@ fun RegisterScreen(
     val registrationSuccess by viewModel.registrationSuccess.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // Validación global de campos
+    // Determina si todos los campos del formulario son válidos.
     val isFieldsValid = remember(
         email, isEmailValid,
         password, isPasswordValid,
@@ -76,16 +89,20 @@ fun RegisterScreen(
                 confirmPassword.isNotBlank() && isConfirmPasswordValid
     }
 
-    // Cuando el registro es exitoso, navegamos a home
+    // Efecto que navega a la pantalla principal cuando el registro es exitoso.
     LaunchedEffect(registrationSuccess) {
         if (registrationSuccess) {
             onRegisterSuccess()
         }
     }
 
+    // Maneja el botón de retroceso para cerrar la actividad.
     BackHandler { activity?.finish() }
 
-    // Función local que encapsula la lógica del clic en "Registrarse"
+    /**
+     * Encapsula la lógica del clic en el botón "Registrarse".
+     * Valida que se haya seleccionado un género antes de proceder.
+     */
     fun handleRegisterClick() {
         if (gender == "-- Seleccione su género --") {
             Toast.makeText(
@@ -121,6 +138,7 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Imagen de perfil que cambia según el género y si es director.
             val profileRes = ImageHelper.getProfileImage(gender, isDirector)
             Image(
                 painter = painterResource(id = profileRes),
@@ -130,6 +148,7 @@ fun RegisterScreen(
                     .padding(bottom = 16.dp)
             )
 
+            // Campos del formulario.
             EmailField(
                 value = email,
                 onValueChange = viewModel::onEmailChange,
@@ -171,6 +190,7 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botón principal para registrarse.
             PrimaryButton(
                 text = "Registrarse",
                 onClick = { handleRegisterClick() },
@@ -178,10 +198,12 @@ fun RegisterScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Botón para volver a la pantalla de inicio de sesión.
             TextButton(onClick = onNavigateToLogin) {
                 Text(text = "¿Ya tienes cuenta? Inicia sesión")
             }
 
+            // Muestra un mensaje de error si existe.
             errorMessage?.let { msg ->
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(

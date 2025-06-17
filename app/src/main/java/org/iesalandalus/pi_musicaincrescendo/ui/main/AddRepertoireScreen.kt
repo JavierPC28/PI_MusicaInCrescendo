@@ -25,6 +25,15 @@ import org.iesalandalus.pi_musicaincrescendo.common.utils.Constants
 import org.iesalandalus.pi_musicaincrescendo.common.utils.ImageHelper
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.AddRepertoireViewModel
 
+/**
+ * Sección del formulario para introducir los datos de la obra.
+ * @param viewModel El ViewModel asociado.
+ * @param title Título de la obra.
+ * @param isTitleValid Indica si el título es válido.
+ * @param composer Compositor de la obra.
+ * @param isComposerValid Indica si el compositor es válido.
+ * @param videoUrl URL del vídeo de YouTube.
+ */
 @Composable
 private fun RepertoireFormSection(
     viewModel: AddRepertoireViewModel,
@@ -119,6 +128,13 @@ private fun RepertoireFormSection(
     )
 }
 
+/**
+ * Muestra la lista de instrumentos para adjuntar archivos PDF.
+ * @param listState Estado de la lista perezosa.
+ * @param instrumentFiles Mapa de instrumentos con sus URIs de archivo seleccionadas.
+ * @param existingInstruments Conjunto de instrumentos que ya tenían un archivo.
+ * @param onFileSelect Lambda que se ejecuta al seleccionar un instrumento para adjuntar un archivo.
+ */
 @Composable
 private fun InstrumentListSection(
     listState: LazyListState,
@@ -176,6 +192,9 @@ private fun InstrumentListSection(
     }
 }
 
+/**
+ * Superposición de carga que se muestra mientras se guardan los datos.
+ */
 @Composable
 private fun LoadingOverlay() {
     Box(
@@ -198,7 +217,10 @@ private fun LoadingOverlay() {
 }
 
 /**
- * Pantalla para añadir una obra al repertorio.
+ * Pantalla principal para añadir o editar una obra del repertorio.
+ * @param modifier Modificador de Compose.
+ * @param viewModel ViewModel para gestionar el estado de la pantalla.
+ * @param navController Controlador de navegación.
  */
 @Composable
 fun AddRepertoireScreen(
@@ -206,6 +228,7 @@ fun AddRepertoireScreen(
     viewModel: AddRepertoireViewModel,
     navController: NavHostController
 ) {
+    // Recoge los estados del ViewModel
     val title by viewModel.title.collectAsState()
     val composer by viewModel.composer.collectAsState()
     val videoUrl by viewModel.videoUrl.collectAsState()
@@ -222,6 +245,8 @@ fun AddRepertoireScreen(
     val lazyListState = rememberLazyListState()
 
     var currentInstrument by remember { mutableStateOf<String?>(null) }
+
+    // Lanzador para el selector de archivos PDF
     val pdfPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -232,6 +257,7 @@ fun AddRepertoireScreen(
         }
     }
 
+    // Efecto para manejar los resultados de la operación de guardado
     LaunchedEffect(saveSuccessMessage, saveError, shouldNavigateBack) {
         saveSuccessMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -245,6 +271,7 @@ fun AddRepertoireScreen(
         }
     }
 
+    // Contenedor principal que puede mostrar la superposición de carga
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -252,6 +279,7 @@ fun AddRepertoireScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // Sección del formulario
             RepertoireFormSection(
                 viewModel,
                 title,
@@ -263,6 +291,8 @@ fun AddRepertoireScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             Text("Archivos", fontWeight = FontWeight.Bold)
+
+            // Mensaje de error si no hay archivos válidos
             if (!isFilesValid) {
                 Text(
                     text = "Debe seleccionar al menos un archivo PDF",
@@ -273,6 +303,7 @@ fun AddRepertoireScreen(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Lista de instrumentos
             Box(modifier = Modifier.weight(1f)) {
                 InstrumentListSection(
                     listState = lazyListState,
@@ -285,6 +316,7 @@ fun AddRepertoireScreen(
             }
         }
 
+        // Muestra la superposición si está cargando
         if (isLoading) {
             LoadingOverlay()
         }

@@ -25,6 +25,11 @@ import org.iesalandalus.pi_musicaincrescendo.domain.usecase.DownloadPdfUseCase
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireDetailViewModel
 import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.RepertoireDetailUiState
 
+/**
+ * Pantalla que muestra los detalles de una obra del repertorio.
+ * @param navController Controlador de navegación para volver atrás.
+ * @param viewModel ViewModel que gestiona el estado de la pantalla.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepertoireDetailScreen(
@@ -52,17 +57,18 @@ fun RepertoireDetailScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when {
+                // Estado de carga
                 uiState.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-
+                // Estado de error
                 uiState.error != null -> {
                     Text(
                         text = uiState.error!!,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-
+                // Muestra el contenido si los datos están listos
                 uiState.repertoire != null && uiState.userProfile != null -> {
                     RepertoireDetailContent(
                         state = uiState,
@@ -85,6 +91,12 @@ fun RepertoireDetailScreen(
     }
 }
 
+/**
+ * Contenido principal de la pantalla de detalles del repertorio.
+ * @param state El estado actual de la UI con los datos de la obra y el usuario.
+ * @param onDownloadPdf Lambda que se ejecuta para descargar un PDF.
+ * @param onRequestPdf Lambda que se ejecuta para solicitar una partitura.
+ */
 @Composable
 private fun RepertoireDetailContent(
     state: RepertoireDetailUiState,
@@ -100,7 +112,7 @@ private fun RepertoireDetailContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // Sección 1: Título y Compositor
+        // Sección de Título y Compositor
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -119,14 +131,14 @@ private fun RepertoireDetailContent(
             )
         }
 
-        // Sección 2: Contenido con fondo
+        // Sección de contenido con fondo
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surfaceContainer)
                 .padding(16.dp)
         ) {
-            // Vídeo de YouTube
+            // Vídeo de YouTube si está disponible
             if (!repertoire.videoUrl.isNullOrBlank()) {
                 Text(
                     text = "Versión a interpretar",
@@ -153,7 +165,7 @@ private fun RepertoireDetailContent(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            // Archivos
+            // Lista de archivos de partituras
             Text(
                 text = "Archivos",
                 style = MaterialTheme.typography.titleMedium,
@@ -162,6 +174,7 @@ private fun RepertoireDetailContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Itera sobre los instrumentos del usuario y muestra una tarjeta para cada uno
                 userProfile.instruments.forEach { instrument ->
                     val pdfUrl = repertoire.instrumentFiles[instrument]
                     InstrumentFileCard(
@@ -181,6 +194,12 @@ private fun RepertoireDetailContent(
     }
 }
 
+/**
+ * Tarjeta para mostrar un instrumento y la disponibilidad de su partitura.
+ * @param instrumentName Nombre del instrumento.
+ * @param hasPdf Indica si el archivo PDF está disponible.
+ * @param onClick Lambda que se ejecuta al hacer clic en la tarjeta.
+ */
 @Composable
 private fun InstrumentFileCard(
     instrumentName: String,
@@ -200,6 +219,7 @@ private fun InstrumentFileCard(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Icono del instrumento
             Image(
                 painter = painterResource(id = ImageHelper.getInstrumentDrawable(instrumentName)),
                 contentDescription = instrumentName,
@@ -212,6 +232,7 @@ private fun InstrumentFileCard(
                 style = MaterialTheme.typography.bodyLarge
             )
             Spacer(modifier = Modifier.width(16.dp))
+            // Muestra el icono de PDF si está disponible, o un texto para solicitarlo.
             if (hasPdf) {
                 Icon(
                     painter = painterResource(id = R.drawable.pdf),

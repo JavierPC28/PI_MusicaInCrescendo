@@ -37,6 +37,11 @@ import org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.EventDetailV
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Pantalla que muestra los detalles de un evento específico.
+ * @param navController Controlador de navegación para volver a la pantalla anterior.
+ * @param viewModel ViewModel que gestiona el estado de esta pantalla.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailScreen(
@@ -66,10 +71,11 @@ fun EventDetailScreen(
                 .fillMaxSize()
         ) {
             when {
+                // Muestra un indicador de progreso mientras carga
                 uiState.isLoading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
-
+                // Muestra un mensaje de error si ocurre un problema
                 uiState.error != null -> {
                     Text(
                         text = uiState.error!!,
@@ -77,7 +83,7 @@ fun EventDetailScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-
+                // Muestra el contenido del evento si se ha cargado correctamente
                 uiState.event != null -> {
                     EventDetailContent(
                         uiState = uiState,
@@ -89,6 +95,11 @@ fun EventDetailScreen(
     }
 }
 
+/**
+ * Contenido principal de la pantalla de detalles, incluyendo el título y las pestañas.
+ * @param uiState Estado actual de la UI.
+ * @param onTabSelected Lambda que se ejecuta al seleccionar una pestaña.
+ */
 @Composable
 private fun EventDetailContent(
     uiState: org.iesalandalus.pi_musicaincrescendo.presentation.viewmodel.EventDetailUiState,
@@ -106,6 +117,7 @@ private fun EventDetailContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Pestañas de navegación
         TabRow(selectedTabIndex = uiState.selectedTab) {
             tabs.forEachIndexed { index, title ->
                 Tab(
@@ -117,6 +129,7 @@ private fun EventDetailContent(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Contenido de la pestaña seleccionada
         when (uiState.selectedTab) {
             0 -> DetailsTab(event)
             1 -> RepertoireTab(uiState.repertoire)
@@ -125,9 +138,14 @@ private fun EventDetailContent(
     }
 }
 
+/**
+ * Pestaña que muestra los detalles del evento (fecha, hora, ubicación, mapa y descripción).
+ * @param event El objeto Evento a mostrar.
+ */
 @Composable
 private fun DetailsTab(event: Event) {
     val context = LocalContext.current
+    // Parsea las coordenadas para el mapa
     val coordinates = remember(event.coordinates) {
         try {
             event.coordinates?.split(',')
@@ -139,6 +157,7 @@ private fun DetailsTab(event: Event) {
     }
     val mapView = rememberMapViewWithLifecycle()
 
+    // Formatea la fecha a un formato más legible
     fun formatDate(dateStr: String): String {
         return try {
             val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -186,6 +205,7 @@ private fun DetailsTab(event: Event) {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Muestra el mapa si hay coordenadas válidas
         if (coordinates != null) {
             Card(
                 modifier = Modifier
@@ -212,6 +232,7 @@ private fun DetailsTab(event: Event) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
+        // Muestra la descripción si no está vacía
         if (!event.description.isNullOrBlank()) {
             Text(
                 text = "Descripción",
@@ -228,6 +249,11 @@ private fun DetailsTab(event: Event) {
     }
 }
 
+/**
+ * Fila genérica para mostrar un detalle con un icono y texto.
+ * @param icon El icono a mostrar.
+ * @param text El texto del detalle.
+ */
 @Composable
 private fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -241,6 +267,12 @@ private fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, tex
     }
 }
 
+/**
+ * Fila específica para la ubicación, con un botón "Cómo llegar".
+ * @param icon El icono de ubicación.
+ * @param location El texto de la ubicación.
+ * @param onClick Acción a ejecutar al pulsar "Cómo llegar".
+ */
 @Composable
 private fun LocationRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -265,6 +297,10 @@ private fun LocationRow(
     }
 }
 
+/**
+ * Pestaña que muestra el repertorio del evento.
+ * @param repertoire Lista de obras del repertorio.
+ */
 @Composable
 private fun RepertoireTab(repertoire: List<Repertoire>) {
     if (repertoire.isEmpty()) {
@@ -288,6 +324,10 @@ private fun RepertoireTab(repertoire: List<Repertoire>) {
     }
 }
 
+/**
+ * Pestaña que muestra los miembros que han confirmado asistencia.
+ * @param members Lista de usuarios que asisten.
+ */
 @Composable
 private fun MembersTab(members: List<User>) {
     if (members.isEmpty()) {
@@ -306,6 +346,10 @@ private fun MembersTab(members: List<User>) {
     }
 }
 
+/**
+ * Fila que muestra la información de un miembro asistente.
+ * @param user El usuario a mostrar.
+ */
 @Composable
 private fun MemberRow(user: User) {
     Card(
@@ -348,12 +392,17 @@ private fun MemberRow(user: User) {
     }
 }
 
+/**
+ * Composable que gestiona el ciclo de vida de un MapView de Google Maps.
+ * @return Una instancia de MapView.
+ */
 @Composable
 private fun rememberMapViewWithLifecycle(): MapView {
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val mapView = remember { MapView(context).apply { id = View.generateViewId() } }
 
+    // Vincula el ciclo de vida del MapView al del Composable
     DisposableEffect(lifecycleOwner) {
         val lifecycle = lifecycleOwner.lifecycle
         val observer = LifecycleEventObserver { _: LifecycleOwner, event ->

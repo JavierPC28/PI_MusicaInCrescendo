@@ -7,7 +7,10 @@ import androidx.compose.ui.res.painterResource
 import org.iesalandalus.pi_musicaincrescendo.R
 
 /**
- * Barra superior con icono hamburguesa.
+ * Barra de aplicación superior (TopAppBar) que incluye un icono para abrir un menú lateral (Drawer).
+ * @param title El título a mostrar en la barra.
+ * @param onMenuClick La acción a ejecutar cuando se pulsa el icono del menú.
+ * @param actions Composables opcionales para acciones adicionales a la derecha.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

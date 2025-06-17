@@ -2,7 +2,16 @@ package org.iesalandalus.pi_musicaincrescendo.common.utils
 
 import org.iesalandalus.pi_musicaincrescendo.R
 
+/**
+ * Objeto de utilidad para obtener imágenes de recursos según la lógica de negocio.
+ */
 object ImageHelper {
+    /**
+     * Devuelve el ID del recurso de imagen de perfil según el género y si es director.
+     * @param gender Género del usuario.
+     * @param isDirector Indica si el usuario es director.
+     * @return ID del recurso drawable.
+     */
     fun getProfileImage(gender: String, isDirector: Boolean): Int {
         return when {
             gender == "Mujer" && isDirector -> R.drawable.perfil_directora
@@ -13,6 +22,11 @@ object ImageHelper {
         }
     }
 
+    /**
+     * Devuelve el ID del recurso de imagen para un instrumento específico.
+     * @param instrument Nombre del instrumento.
+     * @return ID del recurso drawable.
+     */
     fun getInstrumentDrawable(instrument: String): Int = when (instrument) {
         Constants.DIRECCION_MUSICAL -> R.drawable.batuta
         "FLAUTÍN" -> R.drawable.flautin
